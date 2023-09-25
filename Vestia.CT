@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<CheatTable CheatEngineTableVersion="42">
+<CheatTable CheatEngineTableVersion="45">
   <CheatEntries>
     <CheatEntry>
       <ID>0</ID>
@@ -21,13 +21,6 @@
       <ShowAsHex>1</ShowAsHex>
       <VariableType>4 Bytes</VariableType>
       <Address>Tibia.exe+2406FC</Address>
-    </CheatEntry>
-    <CheatEntry>
-      <ID>5</ID>
-      <Description>"No description"</Description>
-      <ShowAsHex>1</ShowAsHex>
-      <VariableType>4 Bytes</VariableType>
-      <Address>00195840</Address>
     </CheatEntry>
   </CheatEntries>
   <CheatCodes>
