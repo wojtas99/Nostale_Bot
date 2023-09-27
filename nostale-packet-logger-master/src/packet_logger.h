@@ -17,8 +17,6 @@ void SendMessagex(LPCSTR szPacket);
 void TargetMonster(uint32_t monster);
 void AttackMonster(uint32_t monster);
 void MoveTo();
-void Vestia();
-void Ruch();
 
 BOOL FindAddresses();
 BOOL HookSend();

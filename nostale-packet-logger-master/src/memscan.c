@@ -1,7 +1,6 @@
 #include <windows.h>
 #include "memscan.h"
 
-
 LPVOID FindPattern(const BYTE *lpPattern, LPCSTR szMask)
 {
     DWORD dwLength = strlen(szMask);

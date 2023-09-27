@@ -26,6 +26,9 @@
     <ClInclude Include="safequeue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Nostale_Entity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.c">

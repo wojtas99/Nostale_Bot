@@ -4,14 +4,22 @@
 const BYTE SEND_PATTERN[] = { 0x53, 0x56, 0x8B, 0xF2, 0x8B, 0xD8, 0xEB, 0x04 };
 const BYTE RECV_PATTERN[] = { 0x55, 0x8B, 0xEC, 0x83, 0xC4, 0xF0, 0x53, 0x56, 0x57, 0x33, 0xC9, 0x89, 0x4D, 0xF4, 0x89, 0x4D, 0xF0, 0x89, 0x55, 0xFC, 0x8B, 0xD8, 0x8B, 0x45, 0xFC };
 const BYTE PACKET_THIS_PATTERN[] = { 0xA1, 0x00, 0x00, 0x00, 0x00, 0x8B, 0x00, 0xE8, 0x00, 0x00, 0x00, 0x00, 0xA1, 0x00, 0x00, 0x00, 0x00, 0x8B, 0x00, 0x33, 0xD2, 0x89, 0x10 };
+const BYTE MOVE_PATTERN[] = { 0x55, 0x8B, 0xEC, 0x83, 0xC4, 0x00, 0x53, 0x56, 0x57, 0x66, 0x89, 0x00, 0x00, 0x89, 0x55 };
+const BYTE MOVE_THIS_PATTERN[] = { 0xFF, 0xB0, 0x00, 0x00, 0x00, 0x00, 0x09, 0x00, 0x0E };
+
 
 LPCSTR SEND_MASK = "xxxxxxxx";
 LPCSTR RECV_MASK = "xxxxxxxxxxxxx?xx?xx?xxxx?";
 LPCSTR PACKET_THIS_MASK = "x????xxx????x????xxxxxx";
+LPCSTR MOVE_MASK = "xxxxx?xxxxx??xx";
+LPCSTR MOVE_THIS_MASK = "xx????x?x";
+
 
 LPVOID lpvSendAddy;
 LPVOID lpvRecvAddy;
 LPVOID lpvPacketThis;
+LPVOID lpvMove;
+LPVOID lpvMoveThis;
 
 LPVOID monsterTargetThis = (LPVOID)0x0072DB64;
 LPVOID targetMonster = (LPVOID)0x006BE17C;
@@ -23,86 +31,21 @@ LPVOID monsterAttackThis2 = (LPVOID)0x0072B14C;
 
 LPVOID sendMessage = (LPVOID)0x006BEC80;
 LPVOID xd = (LPVOID)0x0072DB64;
-LPVOID moveFunc = (LPVOID)0x004B2084;
 
 SafeQueue* qSend;
 SafeQueue* qRecv;
 
 
-LPVOID mapThis = (LPVOID)0x0072EB64;
-LPVOID mapMove = (LPVOID)0x006BDE94;
-
-//LPVOID mapThis2 = *(LPVOID*)0X008BD524;
-LPVOID mapMove2 = (LPVOID)0X00550328;
-
-
-
-LPVOID atak = (LPVOID)0x00408F20;
-LPVOID atak2 = (LPVOID)0x0045D860;
-
-LPVOID ruch = (LPVOID)0x004D0E20;
-
-LPVOID ruch2 = (LPVOID)0x00464070;
-//004EE92C
-LPVOID postac = (LPVOID)0x0019EC8C;
-void Ruch()
-{
-    /*
-MOV EAX, 0X10E
-PUSH 00
-PUSH 00
-PUSH 01
-call ruch
-*/
-    DWORD z = (DWORD)0x07;
-    DWORD x = (DWORD)0x3DC;
-    DWORD y = (DWORD)0x405;
-    _asm
-    {
-        MOV EDX, z
-        PUSH EDX
-        MOV EAX, x
-        PUSH EAX
-        MOV ECX, y
-        PUSH ECX
-        CALL ruch2
-    }
-    system("pause");
-}
-void Vestia()
-{
-    _asm
-    {
-        PUSH EAX
-        MOV EAX, 0X40005075
-        CALL atak
-    }
-}
-
-
 void MoveTo()
 {
-    DWORD wpt = (DWORD)0x00780024;
-    //        MOV EAX, [EAX]
-    //MOV EAX, [mapThis2]
     _asm
     {
         PUSH 01
         XOR ECX, ECX
-        MOV EDX, wpt// Waypoint.
-
-        CALL mapMove2
+        MOV EDX, 0x00780024 // Waypoint
+        MOV EAX, [lpvMoveThis]
+        CALL lpvMove
     }
-    /*
-    _asm
-    {
-        MOV EAX, [mapThis]
-        MOV EAX, [EAX]
-        MOV CX, 0x0077
-        MOV DX, 0X0020
-        CALL mapMove
-    }
-    */
 }
 
 
@@ -195,6 +138,7 @@ void ReceivePacket(LPCSTR szPacket)
         CALL lpvRecvAddy
     }
 }
+
 #pragma managed(pop)
 
 BOOL StartLogger(SafeQueue* qSendPackets, SafeQueue* qRecvPackets)
@@ -221,10 +165,14 @@ BOOL FindAddresses()
 
     lpvRecvAddy = FindPattern(RECV_PATTERN, RECV_MASK); // Address to the start of Recv Function.
 
+    lpvMove = FindPattern(MOVE_PATTERN, MOVE_MASK); // Address to the start of Move Function
+
+    lpvMoveThis = *(LPVOID*)((DWORD)FindPattern(MOVE_THIS_PATTERN, MOVE_THIS_MASK) - 0x1F); // Move This 3
+    
     DWORD pThisPacket = (DWORD_PTR)FindPattern(PACKET_THIS_PATTERN, PACKET_THIS_MASK) + 0x1;
     lpvPacketThis = (LPVOID)*(DWORD*)pThisPacket;
 
-    return lpvSendAddy && lpvRecvAddy && lpvPacketThis;
+    return lpvSendAddy && lpvRecvAddy && lpvPacketThis && lpvMove && lpvMoveThis;
 }
 
 BOOL HookSend()
