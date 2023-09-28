@@ -64,6 +64,15 @@
         <Offset>93C</Offset>
       </Offsets>
     </CheatEntry>
+    <CheatEntry>
+      <ID>34</ID>
+      <Description>"IloscPotworów"</Description>
+      <VariableType>4 Bytes</VariableType>
+      <Address>"NostaleClientX.exe"+003212D8</Address>
+      <Offsets>
+        <Offset>248</Offset>
+      </Offsets>
+    </CheatEntry>
   </CheatEntries>
   <UserdefinedSymbols/>
   <Structures StructVersion="2">

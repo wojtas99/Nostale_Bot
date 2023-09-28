@@ -1,19 +1,14 @@
-#include <windows.h>
-#include "main_form.h"
 #include "packet_logger.h"
-#include "safequeue.h"
-
-using namespace nostalepacketlogger;
-
+#include "Nostale_Entity.h"
+#include <string>
+#include "gui.h"
+using namespace easyBot;
 int GuiMain()
 {
-    SafeQueue qSend, qRecv;
-
-    StartLogger(&qSend, &qRecv);
-    Application::EnableVisualStyles();
-    Application::SetCompatibleTextRenderingDefault(false);
-    Application::Run(gcnew main_form(&qSend, &qRecv, SendPacket, ReceivePacket));
-    StopLogger();
-
-    return 0;
+	StartLogger();
+	Application::EnableVisualStyles();
+	Application::SetCompatibleTextRenderingDefault(false);
+	Application::Run(gcnew main_form(MoveTo));
+	StopLogger();
+	return 0;
 }

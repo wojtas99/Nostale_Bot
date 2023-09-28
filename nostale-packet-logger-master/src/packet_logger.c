@@ -36,7 +36,9 @@ SafeQueue* qSend;
 SafeQueue* qRecv;
 
 
-void MoveTo()
+
+#pragma managed(push, off)
+void MoveTo(void)
 {
     _asm
     {
@@ -47,9 +49,6 @@ void MoveTo()
         CALL lpvMove
     }
 }
-
-
-#pragma managed(push, off)
 void CustomSend()
 {
     LPSTR szPacket;
@@ -140,6 +139,10 @@ void ReceivePacket(LPCSTR szPacket)
 }
 
 #pragma managed(pop)
+BOOL StartLogger()
+{
+    return FindAddresses();
+}
 
 BOOL StartLogger(SafeQueue* qSendPackets, SafeQueue* qRecvPackets)
 {

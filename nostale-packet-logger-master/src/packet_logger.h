@@ -10,6 +10,7 @@ using namespace std;
 
 
 BOOL StartLogger(SafeQueue* sqSendPackets, SafeQueue* sqRecvPackets);
+BOOL StartLogger();
 BOOL StopLogger();
 void SendPacket(LPCSTR szPacket);
 void ReceivePacket(LPCSTR szPacket);

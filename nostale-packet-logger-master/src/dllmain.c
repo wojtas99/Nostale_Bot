@@ -1,9 +1,9 @@
-#include "packet_logger.h"
-#include "Nostale_Entity.h"
-#include <string>
+#pragma once
+#include <windows.h>
+
+extern int GuiMain();
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpvReserved);
-
 DWORD WINAPI HackThread(LPVOID lpParameter);
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD  fdwReason, LPVOID lpvReserved)
@@ -25,28 +25,25 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  fdwReason, LPVOID lpvReserved)
 
 DWORD WINAPI HackThread(LPVOID lpParameter)
 {
+    /*
     FILE* f;
     LPSTR packet;
     SafeQueue qSend, qRecv;
-    //EntityList* monsters = (EntityList*)0x0BDEDC20;
+    EntityList* monsters = (EntityList*)0x0B4D54D0;
     AllocConsole();
     freopen_s(&f, "CONOUT$", "w", stdout);
     uint32_t x;
-    int i = 1;
-    //x = monsters->monsterID;
-    string monsterName;;
+    string monsterName;
     cout << "Lista Potworkow na mapie to :" << endl;
-    /*
-    while (x > 4153968)
+    for (int i = 0; i< 303 ; ++i)
     {
+        x = (monsters + i)->monsterID;
         x = *(uint32_t*)(x + 0x1BC);
         x = *(uint32_t*)(x + 0x04);
         monsterName = (const char*)x;
         cout << hex << x << " " <<monsterName << endl;
-        x = (monsters + i)->monsterID;
-        ++i;
+        printf("%d\n", i);
     }
-    */
     StartLogger(&qSend, &qRecv);
     while (true)
     {
@@ -76,12 +73,12 @@ DWORD WINAPI HackThread(LPVOID lpParameter)
             cout << "Send Move" << endl;
             MoveTo();
         }
-
     }
     if (f != NULL)
     {
         fclose(f);
     }
-    FreeLibraryAndExitThread((HMODULE)lpParameter, NULL);
-
+    */
+    FreeLibraryAndExitThread((HMODULE)lpParameter, GuiMain());
+    
 }
