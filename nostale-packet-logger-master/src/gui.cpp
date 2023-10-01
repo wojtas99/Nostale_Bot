@@ -8,7 +8,7 @@ int GuiMain()
 	StartLogger();
 	Application::EnableVisualStyles();
 	Application::SetCompatibleTextRenderingDefault(false);
-	Application::Run(gcnew main_form(MoveTo));
+	Application::Run(gcnew main_form(MoveTo, AttackMonster));
 	StopLogger();
 	return 0;
 }

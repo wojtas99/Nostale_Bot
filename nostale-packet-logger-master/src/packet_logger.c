@@ -24,9 +24,9 @@ LPVOID lpvMoveThis;
 LPVOID monsterTargetThis = (LPVOID)0x0072DB64;
 LPVOID targetMonster = (LPVOID)0x006BE17C;
 
-LPVOID attackMonster = (LPVOID)0x006BD5FC;
-LPVOID monsterAttackThis = (LPVOID)0x0072DB64;
-LPVOID monsterAttackThis2 = (LPVOID)0x0072B14C;
+LPVOID attackMonster = (LPVOID)0x006BD700;
+LPVOID monsterAttackThis = (LPVOID)0x0072EB64;
+LPVOID monsterAttackThis2 = (LPVOID)0x0072C14C;
 
 
 LPVOID sendMessage = (LPVOID)0x006BEC80;

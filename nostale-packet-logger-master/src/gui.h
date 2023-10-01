@@ -1,5 +1,4 @@
 #pragma once
-#include <msclr/marshal.h>
 
 
 namespace easyBot
@@ -17,18 +16,20 @@ namespace easyBot
     /// </summary>
     public ref class main_form : public System::Windows::Forms::Form
     {
-
     public:
+
         main_form(void)
         {
             InitializeComponent();
         }
-        main_form(void(*lpMoveTo)(void))
-        {
+        main_form(void(*lpMoveTo)(void), void(lpAttackMonster(uint32_t)))
+        {        
+            
             InitializeComponent();
             this->Width = 700;
             this->Height = 700;
             this->Text = "KrawczorBot";
+            this->attackMonster = lpAttackMonster;
         }
         ~main_form()
         {
@@ -38,6 +39,8 @@ namespace easyBot
             }
         }
     private:
+        void(*attackMonster)(uint32_t);
+
         System::ComponentModel::Container^ components; //Required designer variable.
         System::Windows::Forms::ListBox^ monsterList;
         System::Windows::Forms::ListBox^ attackMonsterList;
@@ -47,6 +50,7 @@ namespace easyBot
 
         System::Windows::Forms::Label^ labelMonsterList;
         System::Windows::Forms::Label^ labelMonsterAttack;
+
 
 
         void InitializeComponent(void)
@@ -86,7 +90,7 @@ namespace easyBot
             refreshMonsterList->Width = 100;
             refreshMonsterList->Height = 30;
             refreshMonsterList->Text = "Refresh";
-            refreshMonsterList->Click += gcnew System::EventHandler(this, &main_form::refreshList);
+            refreshMonsterList->Click += gcnew EventHandler(this, &main_form::refreshList);
             this->Controls->Add(refreshMonsterList);
 
             addMonster = gcnew System::Windows::Forms::Button();
@@ -94,19 +98,27 @@ namespace easyBot
             addMonster->Width = 75;
             addMonster->Height = 25;
             addMonster->Text = "Start Bot";
+            addMonster->Click += gcnew EventHandler(this, &main_form::startBot);
             this->Controls->Add(addMonster);
 
+            //###################### Entities ########################
 
         }
         //###################### Refresh Monster List Button ######################
         System::Void refreshList(System::Object^ sender, System::EventArgs^ e)
         {
-            EntityList* monsters = (EntityList*)0x0EBAC240;
             uint32_t x;
             bool found = 0;
+
+            EntityList* monsters[18];
+            monsters[0] = (EntityList*)0x0ECDBDC0;
+            for (int i = 1; i < 18; ++i)
+            {
+               monsters[i] = (EntityList*)(*monsters + i);
+            }
             for (int i = 0; i < 18; ++i)
             {
-                x = (monsters + i)->monsterID;
+                x = monsters[i]->monsterID;
                 x = *(uint32_t*)(x + 0x1BC);
                 x = *(uint32_t*)(x + 0x04);
 
@@ -141,6 +153,33 @@ namespace easyBot
                 this->attackMonsterList->Items->Remove(attackMonsterList->SelectedItem);
             }
         }
-     
+        System::Void startBot(Object^ sender, EventArgs^ e)
+        {
+            FILE* f;
+            AllocConsole();
+            freopen_s(&f, "CONOUT$", "w", stdout);
+            EntityList* monsters[18];
+            monsters[0] = (EntityList*)0x0ECDBDC0;
+            uint32_t myPos = *(uint32_t*)0x029FDB1C;
+            uint32_t myPosX = (myPos >> 16) & 0xFFFF;
+            uint32_t myPosY = myPos & 0xFFFF;
+            cout << myPos << endl;
+            cout << myPosX << endl;
+            cout << myPosY << endl;
+            uint32_t monsterPosX = 0;
+            uint32_t monsterPosY = 0;
+            uint32_t x;
+            for (int i = 0; i < 18; ++i)
+            {
+                (*(monsters + i)) = (EntityList*)(*monsters + i);
+            }
+            x = (*monsters)->monsterID;
+            x = *(uint32_t*)(x + 0xC);
+            monsterPosX = (x >> 16) & 0xFFFF;
+            monsterPosY = x & 0xFFF;
+            cout << monsterPosX << endl;
+            cout << monsterPosY << endl;
+            AttackMonster(monsters[0]->monsterID);
+        }    
     };
 }
