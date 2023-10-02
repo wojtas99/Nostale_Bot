@@ -179,33 +179,42 @@ namespace easyBot
         
         System::Void startBotWorker(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e)
         {
+            FILE* f;
+            AllocConsole();
+            freopen_s(&f, "CONOUT$", "w", stdout);
+            uint32_t monsterCount = *(uint32_t*)0x02BCDB08;
             EntityList* monsters[18];
-            monsters[0] = (EntityList*)0x0D57C000;
+            monsters[0] = (EntityList*)0x0EBABF40;
             uint32_t monsterPosX = 0;
             uint32_t monsterPosY = 0;
             uint32_t x;
-            for (int i = 0; i < 18; ++i)
+            for (int i = 0; i < monsterCount; ++i)
                 (*(monsters + i)) = (EntityList*)(*monsters + i);
             while (!this->attackWorker->CancellationPending)
             {
-                uint32_t myPos = *(uint32_t*)0x02C9DB1C;
+                uint32_t myPos = *(uint32_t*)0x0EABE3B4;
                 uint32_t myPosX = (myPos >> 16) & 0xFFFF;
                 uint32_t myPosY = myPos & 0xFFFF;
-                for (int i = 0; i < 18; ++i)
+                for (int i = 0; i < monsterCount; ++i)
                 {
                     x = (*monsters + i)->monsterID;
                     x = *(uint32_t*)(x + 0xC);
                     monsterPosX = (x >> 16) & 0xFFFF;
                     monsterPosY = x & 0xFFFF;
-                    if (abs(int(myPosX - monsterPosX)) <= 3 && abs(int(myPosY - monsterPosY)) <= 3)
+                    while (abs(int(myPosX - monsterPosX)) <= 9 && abs(int(myPosY - monsterPosY)) <= 9)
                     {
+                        x = (*monsters + i)->monsterID;
                         AttackMonster((*monsters + i)->monsterID);
-                        System::Threading::Thread::Sleep(3000);
+                        System::Threading::Thread::Sleep(1000);
+                        System::Console::WriteLine(((*monsters + i)->monsterID));
+                        if (x != (*monsters + i)->monsterID)
+                            break;
                     }
+                    monsterCount = *(uint32_t*)0x02BCDB08;
+                    if (i == monsterCount)
+                        i = 0;
                 }
             }
-            System::Console::WriteLine("Koniec");
-            system("pause");
         }
         
     };
