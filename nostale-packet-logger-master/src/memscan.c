@@ -1,5 +1,6 @@
 #include <windows.h>
 #include "memscan.h"
+#include <iostream>
 
 LPVOID FindPattern(const BYTE *lpPattern, LPCSTR szMask)
 {
@@ -16,4 +17,24 @@ LPVOID FindPattern(const BYTE *lpPattern, LPCSTR szMask)
     }
 
     return NULL;
+}
+
+DWORD ReadPointer(DWORD address, std::vector<int> offsets)
+{
+    FILE* f;
+    AllocConsole();
+    freopen_s(&f, "CONOUT$", "w", stdout);
+    HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, GetCurrentProcessId());
+    ReadProcessMemory(hProcess, (LPCVOID)address, &address, sizeof(address), NULL);
+    std::cout << std::hex << address << std::endl;
+    system("pause");
+    for (int i = 0; i < offsets.size() - 1; ++i)
+    {
+        ReadProcessMemory(hProcess, (LPCVOID)(address + offsets.at(i)), &address, sizeof(address), NULL);
+        std::cout << std::hex << address << std::endl;
+        system("pause");
+    }
+    address += offsets.back();
+    std::cout << std::hex << address << std::endl;
+    return address;
 }

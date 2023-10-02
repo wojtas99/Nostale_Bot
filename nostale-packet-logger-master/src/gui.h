@@ -1,4 +1,5 @@
 #pragma once
+#include "memscan.h"
 namespace easyBot
 {
 
@@ -37,6 +38,11 @@ namespace easyBot
         }
     private:
         void(*attackMonster)(uint32_t);
+
+        DWORD monsterCountPointer = ReadPointer(0x7212D8, { 0x248 });
+        DWORD myPosPointer = ReadPointer(0x008BDD80, { 0xAC, 0x00, 0x08, 0x68, 0x840, 0xFC4 });
+        DWORD entityListPointer = ReadPointer(0x008B4F88, { 0x93C, 0x7AC, 0x204, 0x00 });
+
 
         System::ComponentModel::BackgroundWorker^ attackWorker;
 
@@ -128,7 +134,7 @@ namespace easyBot
             bool found = 0;
 
             EntityList* monsters[18];
-            monsters[0] = (EntityList*)0x0CCCBF40;
+            monsters[0] = (EntityList*)entityListPointer;
             for (int i = 1; i < 18; ++i)
             {
                monsters[i] = (EntityList*)(*monsters + i);
@@ -182,19 +188,22 @@ namespace easyBot
             FILE* f;
             AllocConsole();
             freopen_s(&f, "CONOUT$", "w", stdout);
-            uint32_t monsterCount = *(uint32_t*)0x02BCDB08;
             EntityList* monsters[18];
-            monsters[0] = (EntityList*)0x0EBABF40;
+            monsters[0] = (EntityList*)entityListPointer;
+            uint32_t monsterCount = *(uint32_t*)monsterCountPointer;
             uint32_t monsterPosX = 0;
             uint32_t monsterPosY = 0;
+            uint32_t myPosX;
+            uint32_t myPosY;
+            uint32_t myPos;
             uint32_t x;
             for (int i = 0; i < monsterCount; ++i)
                 (*(monsters + i)) = (EntityList*)(*monsters + i);
             while (!this->attackWorker->CancellationPending)
             {
-                uint32_t myPos = *(uint32_t*)0x0EABE3B4;
-                uint32_t myPosX = (myPos >> 16) & 0xFFFF;
-                uint32_t myPosY = myPos & 0xFFFF;
+                myPos = *(uint32_t*)myPosPointer;
+                myPosX = (myPos >> 16) & 0xFFFF;
+                myPosY = myPos & 0xFFFF;
                 for (int i = 0; i < monsterCount; ++i)
                 {
                     x = (*monsters + i)->monsterID;
@@ -210,7 +219,7 @@ namespace easyBot
                         if (x != (*monsters + i)->monsterID)
                             break;
                     }
-                    monsterCount = *(uint32_t*)0x02BCDB08;
+                    monsterCount = *(uint32_t*)monsterCountPointer;
                     if (i == monsterCount)
                         i = 0;
                 }
