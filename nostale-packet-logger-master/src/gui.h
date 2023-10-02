@@ -1,6 +1,4 @@
 #pragma once
-
-
 namespace easyBot
 {
 
@@ -23,13 +21,12 @@ namespace easyBot
             InitializeComponent();
         }
         main_form(void(*lpMoveTo)(void), void(lpAttackMonster(uint32_t)))
-        {        
-            
+        {
             InitializeComponent();
             this->Width = 700;
             this->Height = 700;
             this->Text = "KrawczorBot";
-            this->attackMonster = lpAttackMonster;
+            //this->attackMonster = lpAttackMonster;
         }
         ~main_form()
         {
@@ -40,6 +37,8 @@ namespace easyBot
         }
     private:
         void(*attackMonster)(uint32_t);
+
+        System::ComponentModel::BackgroundWorker^ attackWorker;
 
         System::ComponentModel::Container^ components; //Required designer variable.
         System::Windows::Forms::ListBox^ monsterList;
@@ -55,7 +54,13 @@ namespace easyBot
 
         void InitializeComponent(void)
         {
-            ////###################### Labels #######################
+            //################ Background Workers ####################
+            attackWorker = gcnew System::ComponentModel::BackgroundWorker();
+            attackWorker->WorkerSupportsCancellation = true;
+            attackWorker->DoWork += gcnew System::ComponentModel::DoWorkEventHandler(this, &main_form::startBotWorker);
+
+
+            //######################## Labels #######################
             labelMonsterList = gcnew System::Windows::Forms::Label();
             labelMonsterList->Width = 250;
             labelMonsterList->Height = 25;
@@ -98,12 +103,24 @@ namespace easyBot
             addMonster->Width = 75;
             addMonster->Height = 25;
             addMonster->Text = "Start Bot";
+            addMonster->BackColor = Color::Green;
             addMonster->Click += gcnew EventHandler(this, &main_form::startBot);
             this->Controls->Add(addMonster);
 
             //###################### Entities ########################
 
         }
+        /*
+        System::Void main_form_Load(System::Object^ sender, System::EventArgs^ e) 
+        {
+            this->attackWorker->RunWorkerAsync();
+        }
+        */
+        System::Void main_form_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e) 
+        {
+            this->attackWorker->CancelAsync();
+        }
+        
         //###################### Refresh Monster List Button ######################
         System::Void refreshList(System::Object^ sender, System::EventArgs^ e)
         {
@@ -111,7 +128,7 @@ namespace easyBot
             bool found = 0;
 
             EntityList* monsters[18];
-            monsters[0] = (EntityList*)0x0ECDBDC0;
+            monsters[0] = (EntityList*)0x0CCCBF40;
             for (int i = 1; i < 18; ++i)
             {
                monsters[i] = (EntityList*)(*monsters + i);
@@ -155,31 +172,41 @@ namespace easyBot
         }
         System::Void startBot(Object^ sender, EventArgs^ e)
         {
-            FILE* f;
-            AllocConsole();
-            freopen_s(&f, "CONOUT$", "w", stdout);
+            this->attackWorker->RunWorkerAsync();
+            addMonster->BackColor = Color::Red;
+            addMonster->Text = "Stop Bot";
+        }    
+        
+        System::Void startBotWorker(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e)
+        {
             EntityList* monsters[18];
-            monsters[0] = (EntityList*)0x0ECDBDC0;
-            uint32_t myPos = *(uint32_t*)0x029FDB1C;
-            uint32_t myPosX = (myPos >> 16) & 0xFFFF;
-            uint32_t myPosY = myPos & 0xFFFF;
-            cout << myPos << endl;
-            cout << myPosX << endl;
-            cout << myPosY << endl;
+            monsters[0] = (EntityList*)0x0D57C000;
             uint32_t monsterPosX = 0;
             uint32_t monsterPosY = 0;
             uint32_t x;
             for (int i = 0; i < 18; ++i)
-            {
                 (*(monsters + i)) = (EntityList*)(*monsters + i);
+            while (!this->attackWorker->CancellationPending)
+            {
+                uint32_t myPos = *(uint32_t*)0x02C9DB1C;
+                uint32_t myPosX = (myPos >> 16) & 0xFFFF;
+                uint32_t myPosY = myPos & 0xFFFF;
+                for (int i = 0; i < 18; ++i)
+                {
+                    x = (*monsters + i)->monsterID;
+                    x = *(uint32_t*)(x + 0xC);
+                    monsterPosX = (x >> 16) & 0xFFFF;
+                    monsterPosY = x & 0xFFFF;
+                    if (abs(int(myPosX - monsterPosX)) <= 3 && abs(int(myPosY - monsterPosY)) <= 3)
+                    {
+                        AttackMonster((*monsters + i)->monsterID);
+                        System::Threading::Thread::Sleep(3000);
+                    }
+                }
             }
-            x = (*monsters)->monsterID;
-            x = *(uint32_t*)(x + 0xC);
-            monsterPosX = (x >> 16) & 0xFFFF;
-            monsterPosY = x & 0xFFF;
-            cout << monsterPosX << endl;
-            cout << monsterPosY << endl;
-            AttackMonster(monsters[0]->monsterID);
-        }    
+            System::Console::WriteLine("Koniec");
+            system("pause");
+        }
+        
     };
 }

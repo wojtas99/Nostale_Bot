@@ -14,8 +14,6 @@ BOOL StartLogger();
 BOOL StopLogger();
 void SendPacket(LPCSTR szPacket);
 void ReceivePacket(LPCSTR szPacket);
-void SendMessagex(LPCSTR szPacket);
-void TargetMonster(uint32_t monster);
 void AttackMonster(uint32_t monster);
 void MoveTo();
 
