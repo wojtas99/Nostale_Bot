@@ -165,6 +165,7 @@
     <ClInclude Include="packet_logger.h" />
     <ClInclude Include="hooking.h" />
     <ClInclude Include="memscan.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="safequeue.h" />
   </ItemGroup>
   <ItemGroup>

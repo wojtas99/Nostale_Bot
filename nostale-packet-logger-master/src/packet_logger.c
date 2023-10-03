@@ -34,13 +34,13 @@ SafeQueue* qRecv;
 
 
 #pragma managed(push, off)
-void MoveTo(void)
+void MoveTo(uint32_t waypoint)
 {
     _asm
     {
         PUSH 01
         XOR ECX, ECX
-        MOV EDX, 0x00780024 // Waypoint
+        MOV EDX, waypoint // Waypoint
         MOV EAX, [lpvMoveThis]
         CALL lpvMove
     }
@@ -81,11 +81,11 @@ void SendPacket(LPCSTR szPacket)
         CALL lpvSendAddy
     }
 }
-void AttackMonster(uint32_t monster)
+void AttackMonster(uint32_t monster, short skill)
 {
     _asm
     {
-        MOV CX, 0 // Rodzaj ataku
+        MOV CX, skill // Rodzaj ataku
         MOV EDX, monster // Id potworka
         MOV EAX, [lpvAttackThis]
         MOV EAX, [EAX]
@@ -141,7 +141,7 @@ BOOL FindAddresses()
 
     lpvAttackThis = FindPattern(ATTACK_THIS_PATTERN, ATTACK_THIS_MASK);
 
-   // lpvMoveThis = *(LPVOID*)((DWORD)FindPattern(MOVE_THIS_PATTERN, MOVE_THIS_MASK) - 0x1F); // Move This 
+    lpvMoveThis = *(LPVOID*)((DWORD)FindPattern(MOVE_THIS_PATTERN, MOVE_THIS_MASK) - 0x1F); // Move This 
     
    // DWORD pThisPacket = (DWORD_PTR)FindPattern(PACKET_THIS_PATTERN, PACKET_THIS_MASK) + 0x1;
     //lpvPacketThis = (LPVOID)*(DWORD*)pThisPacket;
