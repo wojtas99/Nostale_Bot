@@ -16,6 +16,7 @@ void SendPacket(LPCSTR szPacket);
 void ReceivePacket(LPCSTR szPacket);
 void AttackMonster(uint32_t monster, short skill);
 void MoveTo(uint32_t waypoint);
+void Collect(uint32_t item);
 
 BOOL FindAddresses();
 BOOL HookSend();
