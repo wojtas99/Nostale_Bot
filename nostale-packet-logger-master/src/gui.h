@@ -1,4 +1,6 @@
 #pragma once
+#include <msclr/marshal_cppstd.h> // Library to convert String^ to const char*
+#include <msclr/marshal.h>
 #include "memscan.h"
 namespace easyBot
 {
@@ -42,7 +44,6 @@ namespace easyBot
         void(*attackMonster)(uint32_t, short);
         void(*moveTo)(uint32_t);
         void(*collectItems)(uint32_t);
-
         DWORD monsterCountPointer = ReadPointer(0x7212D8, { 0x248 });
         DWORD myPosPointer = ReadPointer(0x008BDD80, { 0xAC, 0x00, 0x08, 0x68, 0x840, 0xFC4 });
         DWORD entityListPointer = ReadPointer(0x008B4F88, { 0x93C, 0x7AC, 0x204, 0x00 });
@@ -235,7 +236,7 @@ namespace easyBot
             bool found = 0;
             uint32_t monsterCount = *(uint32_t*)monsterCountPointer;
             EntityList** monsters = (EntityList**)malloc(monsterCount * sizeof(EntityList*));
-
+            /*
             for (int i = 0; i < monsterCount; ++i)
             {
                 *(monsters + i) = (EntityList*)*((uint32_t*)(entityListPointer)+i);
@@ -256,6 +257,8 @@ namespace easyBot
                 }
                 found = 0;
             }
+            */
+            free(monsters);
         }
         //###################### Add Waypoint Button ######################
         System::Void addWaypoints(System::Object^ sender, System::EventArgs^ e)
@@ -290,43 +293,45 @@ namespace easyBot
 
             int i = 0;
             int tmp = (int)this->waypointList->Items->Count;
+            this->waypointList->SetSelected(i, TRUE);
             while (!this->waypointWorker->CancellationPending)
             {
                 while (1)
                 {
-                    this->waypointList->SetSelected(i, TRUE);
                     myPos = *(uint32_t*)myPosPointer;
                     waypointPos = (uint32_t)this->waypointList->Items[i];
-                    attackStatus = *(uint32_t*)attackStatusPointer;
-                    this->walkingOn = false;
-                    Sleep(10000);
-                    if (attackStatus == 0)
+                    if (myPos == waypointPos)
                     {
-                        if (myPos == waypointPos)
+                        this->walkingOn = false;
+                        Sleep(4000);
+                        attackStatus = *(uint32_t*)attackStatusPointer;
+                        if (attackStatus)
+                            continue;
+                        if (i < tmp - 1)
                         {
-                            if (i < tmp - 1)
-                            {
-                                ++i;
-                                this->waypointList->SetSelected(i, TRUE);
-                                waypointPos = (uint32_t)this->waypointList->Items[i];
-                                this->walkingOn = true;
-                                MoveTo(waypointPos);
-                                Sleep(2000);
-                            }
-                            else
-                            {
-                                i = 0;
-                                break;
-                            }
+                            ++i;
+                            this->waypointList->SetSelected(i, TRUE);
+                            waypointPos = (uint32_t)this->waypointList->Items[i];
+                            this->walkingOn = true;
+                            MoveTo(waypointPos);
+                            Sleep(1000);
                         }
                         else
                         {
-                            this->walkingOn = true;
-                            MoveTo(waypointPos);
-                            Sleep(2000);
+                            i = 0;
+                            break;
                         }
                     }
-                               
+                    else
+                    {
+                        if (!this->walkingOn)
+                        {
+                            MoveTo(waypointPos);
+                            this->walkingOn = true;
+                        }
+                        Sleep(1000);
+                    }
+                    Sleep(100);
                 }
             }
         }
@@ -334,12 +339,12 @@ namespace easyBot
         //###################### StartAttackWalker ######################
         System::Void startAttackWorker(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e)
         {
-            int monsterPosX;
-            int monsterPosY;
-            int myPosX;
-            int myPosY;
+            int monsterPos = 0;
+            int monsterPosY = 0;
+            int myPosX = 0;
+            int myPosY = 0;
 
-            uint32_t myPos;
+            uint32_t myPos = 0;
 
             uint32_t monsterCount = *(uint32_t*)monsterCountPointer;
 
@@ -348,35 +353,16 @@ namespace easyBot
             for (int i = 0; i < monsterCount; ++i)
             {
                 *(monsters + i)  = (EntityList*)*((uint32_t*)(entityListPointer) + i);
-                (*(monsters + i))->monsterNamePointer = (uint32_t)(((uint32_t*)(*(monsters + i))) + 0x6F);
-                (*(monsters + i))->monsterNamePointer = (*(uint32_t*)((*(monsters + i))->monsterNamePointer)) + 0x04;
-                (*(monsters + i))->monsterNamePointer = *(uint32_t*)((*(monsters + i))->monsterNamePointer);
+                (*(monsters + i))->monsterNamePointer = (uint32_t*)((uint32_t)*(monsters + i) + 0x1BC);
+                (*(monsters + i))->monsterNamePointer = (uint32_t*)((*(uint32_t*)((*(monsters + i))->monsterNamePointer)) + 0x04);
             }
             while (!this->attackWorker->CancellationPending)
             {
                 for (int i = 0; i < monsterCount; ++i)
                 {
-                    myPos = *(uint32_t*)myPosPointer;
-                    myPosX = (myPos >> 16) & 0xFFFF;
-                    myPosY = myPos & 0xFFFF;
-                    
-                    monsterPosX = ((*(monsters + i))->monsterPos >> 16) & 0xFFFF;
-                    monsterPosY = (*(monsters + i))->monsterPos & 0xFFFF;
-                    monsterPosX = abs(monsterPosX - myPosX);
-                    monsterPosY = abs(monsterPosY - myPosY);
-                    while (monsterPosY < 8 && monsterPosX < 8 && (*(monsters +i))->monsterID != 0xFFFFFFFF)
-                    {
-                        while (this->walkingOn)
-                        {
-                            System::Threading::Thread::Sleep(100);
-                        }
-                        AttackMonster(*(uint32_t*)(monsters + i), 0);
-                        System::Threading::Thread::Sleep(910);
-                    }
-                    System::Threading::Thread::Sleep(10);
+
                 }
             }
         }
-        
     };
 }
