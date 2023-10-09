@@ -1,6 +1,5 @@
 #pragma once
-#include <msclr/marshal_cppstd.h> // Library to convert String^ to const char*
-#include <msclr/marshal.h>
+#include <msclr/marshal_cppstd.h> // Library to convert String^ to string
 #include "memscan.h"
 namespace easyBot
 {
@@ -78,9 +77,6 @@ namespace easyBot
 
         void InitializeComponent(void)
         {
-            FILE* f;
-            AllocConsole();
-            freopen_s(&f, "CONOUT$", "w", stdout);
 
             //################ TabPages  ####################
             //################  MainTab  ####################
@@ -236,16 +232,14 @@ namespace easyBot
             bool found = 0;
             uint32_t monsterCount = *(uint32_t*)monsterCountPointer;
             EntityList** monsters = (EntityList**)malloc(monsterCount * sizeof(EntityList*));
-            /*
             for (int i = 0; i < monsterCount; ++i)
             {
                 *(monsters + i) = (EntityList*)*((uint32_t*)(entityListPointer)+i);
-                (*(monsters + i))->monsterNamePointer = (uint32_t)(((uint32_t*)(*(monsters + i))) + 0x6F);
-                (*(monsters + i))->monsterNamePointer = (*(uint32_t*)((*(monsters + i))->monsterNamePointer)) + 0x04;
-                (*(monsters + i))->monsterNamePointer = *(uint32_t*)((*(monsters + i))->monsterNamePointer);
+                (*(monsters + i))->monsterNamePointer = (uint32_t*)((uint32_t) * (monsters + i) + 0x1BC);
+                (*(monsters + i))->monsterNamePointer = (uint32_t*)((*(uint32_t*)((*(monsters + i))->monsterNamePointer)) + 0x04);
                 for (int tmp = 0; tmp < (int)this->monsterList->Items->Count; ++tmp)
                 {
-                    if (gcnew System::String((const char*)((*(monsters + i))->monsterNamePointer)) == (this->monsterList->Items[tmp]->ToString()))
+                    if (gcnew System::String((const char*)*(uint32_t*)((*(monsters + i))->monsterNamePointer)) == (this->monsterList->Items[tmp]->ToString()))
                     {
                         found = 1;
                         break;
@@ -253,11 +247,10 @@ namespace easyBot
                 }
                 if (!found)
                 {
-                    this->monsterList->Items->Add(gcnew System::String((const char*)((*(monsters + i))->monsterNamePointer)));
+                    this->monsterList->Items->Add(gcnew System::String((const char*)*(uint32_t*)((*(monsters + i))->monsterNamePointer)));
                 }
                 found = 0;
             }
-            */
             free(monsters);
         }
         //###################### Add Waypoint Button ######################
@@ -339,30 +332,62 @@ namespace easyBot
         //###################### StartAttackWalker ######################
         System::Void startAttackWorker(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e)
         {
-            int monsterPos = 0;
+            unsigned int monsterPos = 0;
+            int monsterPosX = 0;
             int monsterPosY = 0;
+            unsigned int myPos = 0;
             int myPosX = 0;
             int myPosY = 0;
+            unsigned register int distanceX = 0;
+            unsigned register int distanceY = 0;
+            unsigned register int monsterStatus = 0;
+            unsigned int monsterCount = *(uint32_t*)monsterCountPointer;
+            
 
-            uint32_t myPos = 0;
-
-            uint32_t monsterCount = *(uint32_t*)monsterCountPointer;
 
             EntityList** monsters = (EntityList**)malloc(monsterCount * sizeof(EntityList*));
+            vector<string> monsterName;
 
-            for (int i = 0; i < monsterCount; ++i)
+            for(int i = 0; i < monsterCount; ++i)
             {
-                *(monsters + i)  = (EntityList*)*((uint32_t*)(entityListPointer) + i);
-                (*(monsters + i))->monsterNamePointer = (uint32_t*)((uint32_t)*(monsters + i) + 0x1BC);
+                *(monsters + i) = (EntityList*)*((uint32_t*)(entityListPointer)+i);
+                (*(monsters + i))->monsterNamePointer = (uint32_t*)((uint32_t) * (monsters + i) + 0x1BC);
                 (*(monsters + i))->monsterNamePointer = (uint32_t*)((*(uint32_t*)((*(monsters + i))->monsterNamePointer)) + 0x04);
+                monsterName.push_back((string)(const char*)*(uint32_t*)(*(monsters + i))->monsterNamePointer);
             }
             while (!this->attackWorker->CancellationPending)
             {
                 for (int i = 0; i < monsterCount; ++i)
                 {
-
+                    for (int j = 0; j < (int)this->attackMonsterList->Items->Count; ++j)
+                    {
+                        if (monsterName.at(i) == msclr::interop::marshal_as<std::string>(attackMonsterList->Items[j]->ToString()))
+                        {
+                            myPos = *(uint32_t*)myPosPointer;
+                            myPosX = myPos & 0xFF;
+                            myPosY = (myPos >> 16) & 0xFF;
+                            monsterPos = (*(monsters + i))->monsterPos;
+                            monsterPosX = monsterPos & 0xFF;
+                            monsterPosY = (monsterPos >> 16) & 0xFF;
+                            distanceX = abs(myPosX - monsterPosX);
+                            distanceY = abs(myPosY - monsterPosY);
+                            monsterStatus = (*(monsters + i))->monsterID;
+                            while (distanceX < 9 && distanceY < 9 && monsterStatus != 0xFFFFFFFF)
+                            {
+                                monsterStatus = (*(monsters + i))->monsterID;
+                                AttackMonster((uint32_t)(*(monsters + i)), 0);
+                                Sleep(1000);
+                            }
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                        
+                    }
                 }
             }
+            free(monsters);
         }
     };
 }
