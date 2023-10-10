@@ -5,9 +5,9 @@
 using namespace easyBot;
 int GuiMain()
 {
-	FILE* f;
+	/*FILE* f;
 	AllocConsole();
-	freopen_s(&f, "CONOUT$", "w", stdout);
+	freopen_s(&f, "CONOUT$", "w", stdout);*/
 	StartLogger();
 	Application::EnableVisualStyles();
 	Application::SetCompatibleTextRenderingDefault(false);
