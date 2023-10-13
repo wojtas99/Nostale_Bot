@@ -17,7 +17,6 @@ namespace easyBot
     public ref class main_form : public System::Windows::Forms::Form
     {
     public:
-
         main_form(void)
         {
             InitializeComponent();
@@ -44,7 +43,7 @@ namespace easyBot
         void(*moveTo)(uint32_t);
         void(*collectItems)(uint32_t);
         DWORD monsterCountPointer = ReadPointer(0x7212D8, { 0x248 });
-        DWORD myPosPointer = ReadPointer(0x008BDD80, { 0xAC, 0x00, 0x08, 0x68, 0x840, 0xFC4 });
+        DWORD myPosPointer = ReadPointer(0x00729E34, { 0x0C });
         DWORD entityListPointer = ReadPointer(0x008B4F88, { 0x93C, 0x7AC, 0x204, 0x00 });
         DWORD attackStatusPointer = ReadPointer(0x008BD9E8, { 0x784, 0x178, 0x5BC, 0xE64, 0xD88 });
         DWORD groundItems = ReadPointer(0x00721634, { 0x26C, 0xE84, 0x04, 0x724, 0x00 });
@@ -81,12 +80,11 @@ namespace easyBot
         System::Windows::Forms::ComboBox^ monsterList;
         System::Windows::Forms::ComboBox^ skillList;
 
-        bool walkingOn = true;
+        bool walkingOn = false;
 
 
         void InitializeComponent(void)
         {
-
             //################ TabPages  ####################
             //################  MainTab  ####################
             mainTab = gcnew System::Windows::Forms::TabPage();
@@ -295,6 +293,7 @@ namespace easyBot
         //###################### Refresh Skill List Button ######################
         System::Void refreshSkillsList(System::Object^ sender, System::EventArgs^ e)
         {
+            this->skillList->Items->Clear();
             uint32_t skill = *(uint32_t*)skillListPointer;
             skill -= 0xA6C;
             for (int i = 0; i < 11; ++i)
@@ -306,6 +305,7 @@ namespace easyBot
         //###################### Refresh Monster List Button ######################
         System::Void refreshTargetList(System::Object^ sender, System::EventArgs^ e)
         {
+            this->monsterList->Items->Clear();
             bool found = 0;
             uint32_t monsterCount = *(uint32_t*)monsterCountPointer;
             EntityList** monsters = (EntityList**)malloc(monsterCount * sizeof(EntityList*));
@@ -424,11 +424,29 @@ namespace easyBot
             unsigned register int monsterStatus = 0;
             unsigned int monsterCount = *(uint32_t*)monsterCountPointer;
             
-
-
+            vector<int> skillPriority;
+            for (int i = 0; i < (int)this->useSkillList->Items->Count; ++i)
+            {
+                for (int j = 0; j < (int)this->skillList->Items->Count; ++j)
+                {
+                    if (this->useSkillList->Items[i]->ToString() == this->skillList->Items[j]->ToString())
+                    {
+                        skillPriority.push_back(j);
+                        break;
+                    }
+                }
+            }
             EntityList** monsters = (EntityList**)malloc(monsterCount * sizeof(EntityList*));
             vector<string> monsterName;
-
+            unsigned int spells[11];
+            uint32_t spell = skillListPointer;
+            spell -= 0x108;
+            spells[1] = spell;
+            spells[0] = spell + 0x48;
+            for (int i = 2; i < 11; ++i)
+            {
+                spells[i] = spell + 0x48 *i;
+            }
             for(int i = 0; i < monsterCount; ++i)
             {
                 *(monsters + i) = (EntityList*)*((uint32_t*)(entityListPointer)+i);
@@ -457,8 +475,20 @@ namespace easyBot
                                 monsterStatus = (*(monsters + i))->monsterID;
                                 while (distanceX < 9 && distanceY < 9 && monsterStatus != 0xFFFFFFFF)
                                 {
+                                    if (this->attackWorker->CancellationPending)
+                                    {
+                                        free(monsters);
+                                        return;
+                                    }
                                     monsterStatus = (*(monsters + i))->monsterID;
-                                    AttackMonster((uint32_t)(*(monsters + i)), 0);
+                                    for (int k = 0; k < this->useSkillList->Items->Count; ++k)
+                                    {
+                                        if (*(uint32_t*)spells[skillPriority.at(k)] < 15)
+                                        {
+                                            AttackMonster((uint32_t)(*(monsters + i)), skillPriority.at(k));
+                                            break;
+                                        }
+                                    }
                                     Sleep(1000);
                                 }
                             }
@@ -469,7 +499,7 @@ namespace easyBot
                             }
                         }
                     }
-                    this->walkingOn = true;
+                    //this->walkingOn = true;
                 }
             }
             free(monsters);
