@@ -1,2 +1,1 @@
-C:\ProjektyGit\nostale_bot\Release\NostaleBot.vcxproj.AssemblyReference.cache
 C:\ProjektyGit\nostale_bot\Release\NostaleBot.dll
