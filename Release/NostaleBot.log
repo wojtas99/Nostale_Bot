@@ -1,9 +1,0 @@
-﻿  CallFunction.c
-  dllmain.c
-  gui.cpp
-  memscan.c
-C:\ProjektyGit\nostale_bot\memscan.c(32,23): warning C4018: '<': signed/unsigned mismatch
-  .NETFramework,Version=v4.0.AssemblyAttributes.cpp
-  Generating Code...
-C:\ProjektyGit\nostale_bot\dllmain.c : warning C4747: Calling managed '_DllMain@12': Managed code may not be run under loader lock, including the DLL entrypoint and calls reached from the DLL entrypoint
-  NostaleBot.vcxproj -> C:\ProjektyGit\nostale_bot\Release\NostaleBot.dll
