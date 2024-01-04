@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 #include <windows.h>
 #include <vector>
 LPVOID FindPattern(const BYTE *lpPattern, LPCSTR szMask);

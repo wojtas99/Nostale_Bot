@@ -40,10 +40,10 @@ namespace easyBot
     private:
         void(*attackMonster)(uint32_t, short);
         void(*moveTo)(uint32_t);
-        DWORD monsterCountPointer = ReadPointer(0x7212D8, { 0x248 });
-        DWORD myPosPointer = ReadPointer(0x00729E34, { 0x0C });
-        DWORD entityListPointer = ReadPointer(0x008B4F88, { 0x93C, 0x7AC, 0x204, 0x00 });
-        DWORD skillListPointer = ReadPointer(0x008BDAB4, { 0x90, 0x08, 0x5F0, 0x50});
+        DWORD monsterCountPointer = ReadPointer(0x003282C0, { 0x08, 0x04, 0x7C, 0x04, 0x528 });
+        DWORD myPosPointer = ReadPointer(0x004C460C, { 0x08 });
+        DWORD entityListPointer = ReadPointer(0x003266D8, { 0xE8C, 0x4, 0x6A4, 0x0 });
+        DWORD skillListPointer = ReadPointer(0x003266D8, { 0xE8C, 0x4, 0x6A4, 0x0 });
 
         System::Windows::Forms::TabControl^ tabView;
 
