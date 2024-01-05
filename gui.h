@@ -41,7 +41,7 @@ namespace easyBot
         void(*attackMonster)(uint32_t, short);
         void(*moveTo)(uint32_t);
         DWORD monsterCountPointer = ReadPointer(0x003282C0, { 0x08, 0x04, 0x7C, 0x04, 0x528 });
-        DWORD myPosPointer = ReadPointer(0x004C460C, { 0x08 });
+        DWORD myPosPointer = ReadPointer(0x004C4E4C, { 0x560, 0x1C, 0x10, 0xB60, 0x0C });
         DWORD entityListPointer = ReadPointer(0x003266D8, { 0xE8C, 0x4, 0x6A4, 0x0 });
         DWORD skillListPointer = ReadPointer(0x003266D8, { 0xE8C, 0x4, 0x6A4, 0x0 });
 
@@ -382,24 +382,22 @@ namespace easyBot
                         this->waypointList->SetSelected(i, TRUE);
                         waypointPos = (unsigned int)this->waypointList->Items[i];
                         MoveTo(waypointPos);
-                        timer = 0;
-                    }
-                    else
-                    {
-                        i = 0;
-                        this->waypointList->SetSelected(i, TRUE);
-                        waypointPos = (unsigned int)this->waypointList->Items[i];
-                        MoveTo(waypointPos);
+                        if (i >= tmp)
+                        {
+                            i = 0;
+                            this->waypointList->SetSelected(i, TRUE);
+                            waypointPos = (unsigned int)this->waypointList->Items[i];
+                            MoveTo(waypointPos);
+                        }
                         timer = 0;
                     }
                 }
-                Sleep(100);
-                timer += 0.1;
+                Sleep(500);
+                timer += 0.5;
                 if (timer > 10)
                 {
-                    waypointPos = (unsigned int)this->waypointList->Items[i];
                     MoveTo(waypointPos);
-                    timer = 0;
+                    Sleep(4000);
                 }
             }
         }
@@ -431,41 +429,45 @@ namespace easyBot
 
             while (!this->attackWorker->CancellationPending)
             {
-                while(i < monsterCount)
+                if (!this->walkingOn)
                 {
-                    monsterID = *((uint32_t*)(entityListPointer)+i);
-                    monsterName = (string)(const char*)*(uint32_t*)((*(uint32_t*)(monsterID + 0x1BC)) + 0x04);
-                    for (int j = 0; j < attackMonsterListCount; ++j)
+                    while (i < monsterCount)
                     {
-                        targetMonster = msclr::interop::marshal_as<std::string>(attackMonsterList->Items[j]->ToString());
-                        if (monsterName == targetMonster)
+                        monsterID = *((uint32_t*)(entityListPointer)+i);
+                        monsterName = (string)(const char*)*(uint32_t*)((*(uint32_t*)(monsterID + 0x1BC)) + 0x04);
+                        for (int j = 0; j < attackMonsterListCount; ++j)
                         {
-                            monsterInRange = (monsterID + 0x8C);
-                            monsterInRange = *(uint32_t*)monsterInRange;
-                            if (monsterInRange != 0)
+                            targetMonster = msclr::interop::marshal_as<std::string>(attackMonsterList->Items[j]->ToString());
+                            if (monsterName == targetMonster)
                             {
-                                monsterPos = monsterID + 0x0C;
-                                myPos = *(uint32_t*)myPosPointer;
-                                myX = myPos & 0xFF;
-                                myY = (myPos >> 16) & 0xFF;
-                                monsterPos = *(uint32_t*)monsterPos;
-                                monsterX = monsterPos & 0xFF;
-                                monsterY = (monsterPos >> 16) & 0xFF;
-                                distanceX = abs(myX - monsterX);
-                                distanceY = abs(myY - monsterY);
-                                monsterStatus = monsterID + 0x08;
-                                while (distanceX < 9 && distanceY < 9 && *(uint32_t*)monsterStatus != 0xFFFFFFFF)
+                                monsterInRange = (monsterID + 0x8C);
+                                monsterInRange = *(uint32_t*)monsterInRange;
+                                if (monsterInRange != 0)
                                 {
-                                    AttackMonster(monsterID, 0);
+                                    monsterPos = monsterID + 0x0C;
+                                    myPos = *(uint32_t*)myPosPointer;
+                                    myX = myPos & 0xFF;
+                                    myY = (myPos >> 16) & 0xFF;
+                                    monsterPos = *(uint32_t*)monsterPos;
+                                    monsterX = monsterPos & 0xFF;
+                                    monsterY = (monsterPos >> 16) & 0xFF;
+                                    distanceX = abs(myX - monsterX);
+                                    distanceY = abs(myY - monsterY);
+                                    monsterStatus = monsterID + 0x08;
+                                    while (distanceX < 8 && distanceY < 8 && *(uint32_t*)monsterStatus != 0xFFFFFFFF)
+                                    {
+                                        AttackMonster(monsterID, 0);
+                                    }
                                 }
                             }
                         }
+                        monsterCount = *(uint32_t*)monsterCountPointer;
+                        ++i;
                     }
-                    monsterCount = *(uint32_t*)monsterCountPointer;
-                    ++i;
+                    this->walkingOn = true;
+                    Sleep(100);
+                    i = 0;
                 }
-                Sleep(100);
-                i = 0;
             }
         }
     };

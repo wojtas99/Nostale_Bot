@@ -1,4 +1,5 @@
 #include "CallFunction.h"
+#include <iostream>
 
 const BYTE MOVE_PATTERN[] = { 0x55, 0x8B, 0xEC, 0x83, 0xC4, 0x00, 0x53, 0x56, 0x57, 0x66, 0x89, 0x00, 0x00, 0x89, 0x55 };
 const BYTE MOVE_THIS_PATTERN[] = { 0x80, 0x26, 0x00, 0x00, 0x00, 0x00 , 0x00, 0x00, 0x58 };
@@ -59,7 +60,7 @@ BOOL FindAddresses()
 
     lpvMove = FindPattern(MOVE_PATTERN, MOVE_MASK);
 
-    lpvMoveThis = (LPVOID)0x008C460C;
+    lpvMoveThis = *(LPVOID*)0x008C460C;
 
     return lpvMove && lpvMoveThis && lpvAttack && lpvAttackThis;
 }
