@@ -24,11 +24,13 @@ namespace easyBot
         main_form(void(lpMoveTo)(uint32_t), void(lpAttackMonster)(uint32_t, short))
         {
             InitializeComponent();
-            this->Width = 700;
-            this->Height = 700;
+            this->Width = 500;
+            this->Height = 400;
             this->Text = "KrawczorBot";
             this->attackMonster = lpAttackMonster;
             this->moveTo = lpMoveTo;
+            this->FormBorderStyle = System::Windows::Forms::FormBorderStyle::FixedDialog;
+            this->MaximizeBox = false;
         }
         ~main_form()
         {
@@ -40,42 +42,29 @@ namespace easyBot
     private:
         void(*attackMonster)(uint32_t, short);
         void(*moveTo)(uint32_t);
-        DWORD monsterCountPointer = ReadPointer(0x003282C0, { 0x08, 0x04, 0x7C, 0x04, 0x528 });
-        DWORD myPosPointer = ReadPointer(0x004C4E4C, { 0x560, 0x1C, 0x10, 0xB60, 0x0C });
-        DWORD entityListPointer = ReadPointer(0x003266D8, { 0xE8C, 0x4, 0x6A4, 0x0 });
-        
-        DWORD skillCooldown = ReadPointer(0x004C46DC, { 0x3A8, 0xFB4 });
-    
-        System::Windows::Forms::TabControl^ tabView;
-
-        System::ComponentModel::BackgroundWorker^ attackWorker;
-        System::ComponentModel::BackgroundWorker^ waypointWorker;
-
         System::ComponentModel::Container^ components; //Required designer variable.
 
-        System::Windows::Forms::ListBox^ attackMonsterList;
-        System::Windows::Forms::ListBox^ waypointList;
-        System::Windows::Forms::ListBox^ useSkillList;
-
-        System::Windows::Forms::Button^ refreshMonsterList;
-        System::Windows::Forms::Button^ startTargeting;
-        System::Windows::Forms::Button^ startWalking;
-        System::Windows::Forms::Button^ addWaypoint;
-        System::Windows::Forms::Button^ addMonster;
-        System::Windows::Forms::Button^ addSkill;
-        System::Windows::Forms::Button^ refreshSkillList;
-
-        System::Windows::Forms::Label^ labelMonsterList;
-        System::Windows::Forms::Label^ labelMonsterAttack;
-        System::Windows::Forms::Label^ labelSkillList;
-        System::Windows::Forms::Label^ labelSkillUse;
+        System::Windows::Forms::TabControl^ tabView;
 
         System::Windows::Forms::TabPage^ mainTab;
         System::Windows::Forms::TabPage^ waypointTab;
         System::Windows::Forms::TabPage^ targetTab;
 
-        System::Windows::Forms::ComboBox^ monsterList;
-        System::Windows::Forms::ComboBox^ skillList;
+        System::ComponentModel::BackgroundWorker^ mainBot_Worker;
+
+        System::Windows::Forms::ListBox^ waypoints_ListBox;
+        System::Windows::Forms::ListBox^ monsters_ListBox;
+        System::Windows::Forms::ListBox^ skills_Listbox;
+
+        System::Windows::Forms::Button^ startBot_Button;
+        System::Windows::Forms::Button^ addWaypoint_Button;
+        System::Windows::Forms::Button^ refreshMonsters_Button;
+        System::Windows::Forms::Button^ addMonster_Button;
+        System::Windows::Forms::Button^ addSkill_Button;
+        System::Windows::Forms::Button^ refreshSkills_Button;
+
+        System::Windows::Forms::ComboBox^ monsters_ComboBox;
+        System::Windows::Forms::ComboBox^ skills_ComboBox;
 
         bool walkingOn = false;
         //################ GRAPHIC USER INTERFACE ##############
@@ -87,11 +76,11 @@ namespace easyBot
             mainTab->Text = "Main";
             //################ TargetTab ####################
             targetTab = gcnew System::Windows::Forms::TabPage();
-            targetTab->Text = "Target";
+            targetTab->Text = "Skill&Target";
 
             //################ WaypointTab ####################
             waypointTab = gcnew System::Windows::Forms::TabPage();
-            waypointTab->Text = "Waypoint";
+            waypointTab->Text = "Cavebot";
 
             //################   TabView   ####################
             tabView = gcnew System::Windows::Forms::TabControl();
@@ -102,205 +91,166 @@ namespace easyBot
             Controls->Add(tabView);
 
             //################ Background Workers ####################
-            //################ Attack Worker ########################
-            attackWorker = gcnew System::ComponentModel::BackgroundWorker();
-            attackWorker->WorkerSupportsCancellation = true;
-            attackWorker->DoWork += gcnew System::ComponentModel::DoWorkEventHandler(this, &main_form::startAttackWorker);
+            mainBot_Worker = gcnew System::ComponentModel::BackgroundWorker();
+            mainBot_Worker->WorkerSupportsCancellation = true;
+            mainBot_Worker->DoWork += gcnew System::ComponentModel::DoWorkEventHandler(this, &main_form::startBot_thread);
 
-            //################ Waypoint Worker ########################
-            waypointWorker = gcnew System::ComponentModel::BackgroundWorker();
-            waypointWorker->WorkerSupportsCancellation = true;
-            waypointWorker->DoWork += gcnew System::ComponentModel::DoWorkEventHandler(this, &main_form::startWaypointWorker);
+            //######################   Main Tab    ##########################
+            //######################    Buttons    ##########################
+            startBot_Button = gcnew System::Windows::Forms::Button();
+            startBot_Button->Location = Point(0, 250);
+            startBot_Button->Text = "Start Bot";
+            startBot_Button->BackColor = Color::Red;
+            startBot_Button->Click += gcnew EventHandler(this, &main_form::startBot);
 
-            //######################   Labels  ##############################
-            //###################### LabelMonsterList #######################
-            labelMonsterList = gcnew System::Windows::Forms::Label();
-            labelMonsterList->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 10, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
-                static_cast<System::Byte>(238)));
-            labelMonsterList->Size = System::Drawing::Size(67, 17);
-            labelMonsterList->Location = Point(179, 29);
-            labelMonsterList->Text = "Monster :";
-            targetTab->Controls->Add(labelMonsterList);
-            //###################### LabelMonsterAttack #####################
-            labelMonsterAttack = gcnew System::Windows::Forms::Label();
-            labelMonsterAttack->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 10, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
-                static_cast<System::Byte>(238)));
-            labelMonsterAttack->Size = System::Drawing::Size(61, 17);
-            labelMonsterAttack->Location = Point(59, 12);
-            labelMonsterAttack->Text = "Whitelist";
-            targetTab->Controls->Add(labelMonsterAttack);
+            //##################### Add to Main Tab ######################
+            mainTab->Controls->Add(startBot_Button);
 
-            //###################### LabelSkillList #####################
-            labelSkillList = gcnew System::Windows::Forms::Label();
-            labelSkillList->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 10, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
-                static_cast<System::Byte>(238)));
-            labelSkillList->Size = System::Drawing::Size(59, 17);
-            labelSkillList->Location = Point(59, 237);
-            labelSkillList->Text = "Skill List";
-            targetTab->Controls->Add(labelSkillList);
 
-            //###################### Label Skill Use #####################
-            labelSkillUse = gcnew System::Windows::Forms::Label();
-            labelSkillUse->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 10, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
-                static_cast<System::Byte>(238)));
-            labelSkillUse->Size = System::Drawing::Size(41, 17);
-            labelSkillUse->Location = Point(205, 241);
-            labelSkillUse->Text = "Skill :";
-            targetTab->Controls->Add(labelSkillUse);
-
-            //###################### ComboBoxes ######################
-            //###################### ComboBox MonsterList ######################
-            monsterList = gcnew System::Windows::Forms::ComboBox();
-            monsterList->Size = System::Drawing::Size(140, 21);
-            monsterList->Location = Point(252, 27);
-            targetTab->Controls->Add(monsterList);
-
-            //###################### ComboBox SkillList ######################
-            skillList = gcnew System::Windows::Forms::ComboBox();
-            skillList->Size = System::Drawing::Size(140, 21);
-            skillList->Location = Point(252, 237);
-            targetTab->Controls->Add(skillList);
+            //######################   Cabebot Tab     ##########################         
+            //######################    Buttons    ########################
+            addWaypoint_Button = gcnew System::Windows::Forms::Button();
+            addWaypoint_Button->Location = Point(0, 200);
+            addWaypoint_Button->Width = 150;
+            addWaypoint_Button->Text = "Add Waypoint";
+            addWaypoint_Button->Click += gcnew EventHandler(this, &main_form::addWaypoint);
 
             //######################     ListBoxes     ######################
-            //###################### AttackMonsterList ######################
-            attackMonsterList = gcnew System::Windows::Forms::ListBox();
-            attackMonsterList->Size = System::Drawing::Size(160, 134);
-            attackMonsterList->Location = Point(12, 39);
-            attackMonsterList->DoubleClick += gcnew EventHandler(this, &main_form::removeMonsterFromList);
-            targetTab->Controls->Add(this->attackMonsterList);
+            waypoints_ListBox = gcnew System::Windows::Forms::ListBox();
+            waypoints_ListBox->Size = System::Drawing::Size(150, 200);
+            waypoints_ListBox->Location = Point(0, 0);
 
-            //###################### WaypointList ######################
-            waypointList = gcnew System::Windows::Forms::ListBox();
-            waypointList->Size = System::Drawing::Size(150, 300);
-            waypointList->Location = Point(500, 300);
-            waypointTab->Controls->Add(waypointList);
+            //##################### Add to Cavebot Tab ######################
+            waypointTab->Controls->Add(addWaypoint_Button);
+            waypointTab->Controls->Add(waypoints_ListBox);
 
-            //###################### SkillsList ######################
-            useSkillList = gcnew System::Windows::Forms::ListBox();
-            useSkillList->Size = System::Drawing::Size(160, 134);
-            useSkillList->Location = Point(12, 265);
-            useSkillList->DoubleClick += gcnew EventHandler(this, &main_form::removeSkillFromList);
-            targetTab->Controls->Add(useSkillList);
 
+            //######################   Target&Skill Tab ######################
+            //######################     List Boxes     ######################
+
+            monsters_ListBox = gcnew System::Windows::Forms::ListBox();
+            monsters_ListBox->Size = System::Drawing::Size(150, 200);
+            monsters_ListBox->DoubleClick += gcnew EventHandler(this, &main_form::removeMonsterFromList);
+
+            skills_Listbox = gcnew System::Windows::Forms::ListBox();
+            skills_Listbox->Size = System::Drawing::Size(150, 200);
+            skills_Listbox->Location = Point(180, 0);
+            skills_Listbox->DoubleClick += gcnew EventHandler(this, &main_form::removeSkillFromList);
+            //###################### Combo Boxes ######################
+            monsters_ComboBox = gcnew System::Windows::Forms::ComboBox();
+            monsters_ComboBox->Location = Point(0, 200);
+
+            skills_ComboBox = gcnew System::Windows::Forms::ComboBox();
+            skills_ComboBox->Location = Point(180, 200);
 
             //######################    Buttons    ########################
-            //#################### AddWaypointButton ######################
-            addWaypoint = gcnew System::Windows::Forms::Button();
-            addWaypoint->Location = Point(500, 600);
-            addWaypoint->Width = 100;
-            addWaypoint->Height = 30;
-            addWaypoint->Text = "AddWaypoint";
-            addWaypoint->Click += gcnew EventHandler(this, &main_form::addWaypoints);
-            waypointTab->Controls->Add(addWaypoint);
+            addMonster_Button = gcnew System::Windows::Forms::Button();
+            addMonster_Button->Location = System::Drawing::Point(100, 240);
+            addMonster_Button->Text = "Add Monster";
+            addMonster_Button->Click += gcnew EventHandler(this, &main_form::addMonster);
 
-            //#################### AddMonstertButton ######################
-            addMonster = gcnew System::Windows::Forms::Button();
-            addMonster->Location = System::Drawing::Point(252, 55);
-            addMonster->Size = System::Drawing::Size(140, 23);
-            addMonster->Text = "Add Monster to Whitelist";
-            addMonster->Click += gcnew EventHandler(this, &main_form::addTarget);
-            targetTab->Controls->Add(addMonster);
+            addSkill_Button = gcnew System::Windows::Forms::Button();
+            addSkill_Button->Location = System::Drawing::Point(280, 240);
+            addSkill_Button->Text = "Add Skill";
+            addSkill_Button->Click += gcnew EventHandler(this, &main_form::addSkill);
 
-            //#################### AddSkillButton ######################
-            addSkill = gcnew System::Windows::Forms::Button();
-            addSkill->Location = System::Drawing::Point(252, 265);
-            addSkill->Size = System::Drawing::Size(140, 23);
-            addSkill->Text = "Add Skill To Skill List";
-            addSkill->Click += gcnew EventHandler(this, &main_form::addSpell);
-            targetTab->Controls->Add(addSkill);
+            refreshMonsters_Button = gcnew System::Windows::Forms::Button();
+            refreshMonsters_Button->Location = Point(0, 240);
+            refreshMonsters_Button->Text = "Refresh";
+            refreshMonsters_Button->Click += gcnew EventHandler(this, &main_form::refreshMonsters);
 
-            //###################### RefreshTargetListButton ########################
-            refreshMonsterList = gcnew System::Windows::Forms::Button();
-            refreshMonsterList->Size = System::Drawing::Size(75, 25);
-            refreshMonsterList->Location = Point(400, 25);
-            refreshMonsterList->Text = "Refresh";
-            refreshMonsterList->Click += gcnew EventHandler(this, &main_form::refreshTargetList);
-            targetTab->Controls->Add(refreshMonsterList);
+            refreshSkills_Button = gcnew System::Windows::Forms::Button();
+            refreshSkills_Button->Location = Point(180, 240);
+            refreshSkills_Button->Text = "Refresh";
+            refreshSkills_Button->Click += gcnew EventHandler(this, &main_form::refreshSkills);
+            targetTab->Controls->Add(refreshSkills_Button);
 
-            //###################### RefreshSkillList ########################
-            refreshSkillList = gcnew System::Windows::Forms::Button();
-            refreshSkillList->Size = System::Drawing::Size(75, 21);
-            refreshSkillList->Location = Point(397, 237);
-            refreshSkillList->Text = "Refresh";
-            refreshSkillList->Click += gcnew EventHandler(this, &main_form::refreshSkillsList);
-            targetTab->Controls->Add(refreshSkillList);
-
-            //###################### StartTargeting ########################
-            startTargeting = gcnew System::Windows::Forms::Button();
-            startTargeting->Location = Point(0, 500);
-            startTargeting->Width = 85;
-            startTargeting->Height = 25;
-            startTargeting->Text = "Targeting Off";
-            startTargeting->BackColor = Color::Red;
-            startTargeting->Click += gcnew EventHandler(this, &main_form::startAttack);
-            mainTab->Controls->Add(startTargeting);
-
-            //######################  StartWalking  ########################
-            startWalking = gcnew System::Windows::Forms::Button();
-            startWalking->Location = Point(0, 400);
-            startWalking->Width = 85;
-            startWalking->Height = 25;
-            startWalking->Text = "Walking Off";
-            startWalking->BackColor = Color::Red;
-            startWalking->Click += gcnew EventHandler(this, &main_form::startWalk);
-            mainTab->Controls->Add(startWalking);
-            
+            //##################### Add to Target&Skill Tab ######################
+            targetTab->Controls->Add(monsters_ComboBox);
+            targetTab->Controls->Add(skills_ComboBox);
+            targetTab->Controls->Add(monsters_ListBox);
+            targetTab->Controls->Add(skills_Listbox);
+            targetTab->Controls->Add(addMonster_Button);
+            targetTab->Controls->Add(addSkill_Button);
+            targetTab->Controls->Add(refreshMonsters_Button);
         }
-    #pragma endregion
+#pragma endregion
+        //###################### Functions       ######################
         //###################### Close Main_Form ######################
-        System::Void main_form_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e) 
+        System::Void main_form_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e)
         {
-            this->attackWorker->CancelAsync();
-            this->waypointWorker->CancelAsync();
+            this->mainBot_Worker->CancelAsync();
         }
-        //###################### StartTargeting ######################
-        System::Void startAttack(Object^ sender, EventArgs^ e)
+        //###################### Button Functions ######################
+        //###################### StartBot ######################
+        System::Void startBot(Object^ sender, EventArgs^ e)
         {
-            if (startTargeting->BackColor == Color::Red)
+            if (startBot_Button->BackColor == Color::Red)
             {
-                startTargeting->BackColor = Color::Green;
-                startTargeting->Text = "Targeting On";
-                this->attackWorker->RunWorkerAsync();
+                startBot_Button->BackColor = Color::Green;
+                startBot_Button->Text = "Stop Bot";
+                this->mainBot_Worker->RunWorkerAsync();
             }
             else
             {
-                startTargeting->BackColor = Color::Red;
-                startTargeting->Text = "Targeting Off";
-                this->attackWorker->CancelAsync();
+                startBot_Button->BackColor = Color::Red;
+                startBot_Button->Text = "Start Bot";
+                this->mainBot_Worker->CancelAsync();
             }
         }
-        //###################### StartWalking ######################
-        System::Void startWalk(Object^ sender, EventArgs^ e)
+        //###################### Add Waypoint Button ######################
+        System::Void addWaypoint(System::Object^ sender, System::EventArgs^ e)
         {
-            if (startWalking->BackColor == Color::Red)
+            DWORD myPosPointer = ReadPointer(0x004C4E4C, { 0x560, 0x1C, 0x10, 0xB60, 0x0C });
+            if (*(uint32_t*)myPosPointer != 0)
+                waypoints_ListBox->Items->Add(*(uint32_t*)myPosPointer);
+        }
+        //###################### Add Target Button ######################
+        System::Void addMonster(System::Object^ sender, System::EventArgs^ e)
+        {
+            if (monsters_ComboBox->SelectedItem != nullptr)
+                monsters_ListBox->Items->Add(this->monsters_ComboBox->SelectedItem->ToString());
+        }
+        //###################### Add Spell Button ######################
+        System::Void addSkill(System::Object^ sender, System::EventArgs^ e)
+        {
+            if (skills_ComboBox->SelectedItem != nullptr)
+                skills_Listbox->Items->Add(this->skills_ComboBox->SelectedIndex + " " + this->skills_ComboBox->SelectedItem->ToString());
+        }
+        //###################### Remove Monster ######################
+        System::Void removeMonsterFromList(Object^ sender, EventArgs^ e)
+        {
+            if (this->monsters_ListBox->SelectedItem != nullptr)
             {
-                startWalking->BackColor = Color::Green;
-                startWalking->Text = "Walking On";
-                this->waypointWorker->RunWorkerAsync();
+                this->monsters_ListBox->Items->Remove(monsters_ListBox->SelectedItem);
             }
-            else
+        }
+        //###################### Remove Skill ######################
+        System::Void removeSkillFromList(Object^ sender, EventArgs^ e)
+        {
+            if (this->skills_Listbox->SelectedItem != nullptr)
             {
-                startWalking->BackColor = Color::Red;
-                startWalking->Text = "Walking Off";
-                this->waypointWorker->CancelAsync();
-            } 
+                this->skills_Listbox->Items->Remove(skills_Listbox->SelectedItem);
+            }
         }
         //###################### Refresh Skill List Button ######################
-        System::Void refreshSkillsList(System::Object^ sender, System::EventArgs^ e)
+        System::Void refreshSkills(System::Object^ sender, System::EventArgs^ e)
         {
             DWORD skillListPointer = ReadPointer(0x004C3E5C, { 0x1BC, 0xF0, 0x0, 0x170, 0x7F4 });
-            this->skillList->Items->Clear();
-            uint32_t skill = (uint32_t)skillListPointer - 0x2A0*3;
+            this->skills_ComboBox->Items->Clear();
+            uint32_t skill = (uint32_t)skillListPointer - 0x2A0 * 3;
             for (int i = 0; i < 11; ++i)
             {
-                this->skillList->Items->Add(gcnew System::String((const char*)*(uint32_t*)(skill + 0x2A0 * i)));
+                this->skills_ComboBox->Items->Add(gcnew System::String((const char*)*(uint32_t*)(skill + 0x2A0 * i)));
             }
-             this->skillList->SelectedIndex = 0;
+            this->skills_ComboBox->SelectedIndex = 0;
         }
-        //###################### Refresh Monster List Button ######################
-        System::Void refreshTargetList(System::Object^ sender, System::EventArgs^ e)
+        //###################### Refresh Monsters List Button ######################
+        System::Void refreshMonsters(System::Object^ sender, System::EventArgs^ e)
         {
-            this->monsterList->Items->Clear();
+            DWORD entityListPointer = ReadPointer(0x003266D8, { 0xE8C, 0x4, 0x6A4, 0x0 });
+            DWORD monsterCountPointer = ReadPointer(0x003282C0, { 0x08, 0x04, 0x7C, 0x04, 0x528 });
+            this->monsters_ComboBox->Items->Clear();
             bool found = 0;
             int monsterCount = *(uint32_t*)monsterCountPointer;
             EntityList** monsters = (EntityList**)malloc(monsterCount * sizeof(EntityList*));
@@ -309,9 +259,9 @@ namespace easyBot
                 *(monsters + i) = (EntityList*)*((uint32_t*)(entityListPointer)+i);
                 (*(monsters + i))->monsterNamePointer = (uint32_t*)((uint32_t) * (monsters + i) + 0x1BC);
                 (*(monsters + i))->monsterNamePointer = (uint32_t*)((*(uint32_t*)((*(monsters + i))->monsterNamePointer)) + 0x04);
-                for (int tmp = 0; tmp < (int)this->monsterList->Items->Count; ++tmp)
+                for (int tmp = 0; tmp < (int)this->monsters_ComboBox->Items->Count; ++tmp)
                 {
-                    if (gcnew System::String((const char*)*(uint32_t*)((*(monsters + i))->monsterNamePointer)) == (this->monsterList->Items[tmp]->ToString()))
+                    if (gcnew System::String((const char*)*(uint32_t*)((*(monsters + i))->monsterNamePointer)) == (this->monsters_ComboBox->Items[tmp]->ToString()))
                     {
                         found = 1;
                         break;
@@ -319,167 +269,105 @@ namespace easyBot
                 }
                 if (!found)
                 {
-                    this->monsterList->Items->Add(gcnew System::String((const char*)*(uint32_t*)((*(monsters + i))->monsterNamePointer)));
+                    this->monsters_ComboBox->Items->Add(gcnew System::String((const char*)*(uint32_t*)((*(monsters + i))->monsterNamePointer)));
                 }
                 found = 0;
             }
-            this->monsterList->SelectedIndex = 0;
+            this->monsters_ComboBox->SelectedIndex = 0;
             free(monsters);
         }
-        //###################### Add Waypoint Button ######################
-        System::Void addWaypoints(System::Object^ sender, System::EventArgs^ e)
-        {
-            if (*(uint32_t*)myPosPointer != 0)
-                waypointList->Items->Add(*(uint32_t*)myPosPointer);
-        }
-        //###################### Add Target Button ######################
-        System::Void addTarget(System::Object^ sender, System::EventArgs^ e)
-        {
-            attackMonsterList->Items->Add(this->monsterList->SelectedItem->ToString());
-        }
-        //###################### Add Spell Button ######################
-        System::Void addSpell(System::Object^ sender, System::EventArgs^ e)
-        {
-            useSkillList->Items->Add(this->skillList->SelectedIndex + " " + this->skillList->SelectedItem->ToString());
-        }
-        //###################### Remove Monster ######################
-        System::Void removeMonsterFromList(Object^ sender, EventArgs^ e)
-        {
-            if (this->attackMonsterList->SelectedItem != nullptr)
-            {
-                this->attackMonsterList->Items->Remove(attackMonsterList->SelectedItem);
-            }
-        }
-        //###################### Remove Skill ######################
-        System::Void removeSkillFromList(Object^ sender, EventArgs^ e)
-        {
-            if (this->useSkillList->SelectedItem != nullptr)
-            {
-                this->useSkillList->Items->Remove(useSkillList->SelectedItem);
-            }
-        }
         //###################### StartWalker ######################
-        System::Void startWaypointWorker(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e)
+        System::Void startBot_thread(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e)
         {
-            unsigned int waypointPos = (unsigned int)this->waypointList->Items[0];
-            unsigned int myPos = *(uint32_t*)myPosPointer;
-            unsigned int tmp = (int)this->waypointList->Items->Count;
-            unsigned int i = 0;
-            double timer = 0;
-            this->waypointList->SetSelected(i, TRUE);
-            MoveTo(waypointPos);
-            while (!this->waypointWorker->CancellationPending)
-            {
-                myPos = *(uint32_t*)myPosPointer;
-                if (myPos == waypointPos)
-                {
-                    this->walkingOn = false;
-                    while (!this->walkingOn)
-                        Sleep(100);
-                    if (i < tmp - 1)
-                    {
-                        ++i;
-                        this->waypointList->SetSelected(i, TRUE);
-                        waypointPos = (unsigned int)this->waypointList->Items[i];
-                        MoveTo(waypointPos);
-                        if (i >= tmp-1)
-                        {
-                            i = 0;
-                            this->waypointList->SetSelected(i, TRUE);
-                            waypointPos = (unsigned int)this->waypointList->Items[i];
-                            MoveTo(waypointPos);
-                        }
-                        timer = 0;
-                    }
-                }
-                Sleep(500);
-                timer += 0.5;
-                if (timer > 10)
-                {
-                    MoveTo(waypointPos);
-                    Sleep(4000);
-                }
-            }
-        }
-
-        //###################### StartAttackWalker ######################
-        System::Void startAttackWorker(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e)
-        {
-            int monsterCount = *(uint32_t*)monsterCountPointer;
-            int monsterInRange;
-            int attackMonsterListCount = (int)this->attackMonsterList->Items->Count;
-            int i = 0;
             string monsterName;
-            string targetMonster;
-
-            DWORD monsterPos;
-            DWORD monsterStatus;
-            DWORD monsterID;
 
             int myPos;
+            int monsterInRange;
             int myX;
             int myY;
             int monsterX;
             int monsterY;
-
             int distanceX;
             int distanceY;
 
+            double timer = 0;
+
+            DWORD monsterCountPointer;
+            DWORD monsterID;
+            DWORD monsterPos;
+            DWORD monsterStatus;
+            DWORD entityListPointer;
+            DWORD myPosPointer = ReadPointer(0x004C4E4C, { 0x560, 0x1C, 0x10, 0xB60, 0x0C });
 
 
-            while (!this->attackWorker->CancellationPending)
+            this->waypoints_ListBox->SetSelected(0, TRUE);
+            MoveTo((uint32_t)this->waypoints_ListBox->Items[0]);
+            while (!this->mainBot_Worker->CancellationPending)
             {
-                if (!this->walkingOn)
+                for (int i = 0; i < (int)this->waypoints_ListBox->Items->Count - 1;)
                 {
-                    while (i < monsterCount)
+                    if ((uint32_t)*(uint32_t*)myPosPointer == (uint32_t)this->waypoints_ListBox->Items[i])
                     {
-                        monsterID = *((uint32_t*)(entityListPointer)+i);
-                        monsterName = (string)(const char*)*(uint32_t*)((*(uint32_t*)(monsterID + 0x1BC)) + 0x04);
-                        for (int j = 0; j < attackMonsterListCount; ++j)
+                        timer = 0;
+                        monsterCountPointer = ReadPointer(0x003282C0, { 0x08, 0x04, 0x7C, 0x04, 0x528 });
+                        for (int j = 0; j < (int)*(uint32_t*)monsterCountPointer; ++j)
                         {
-                            targetMonster = msclr::interop::marshal_as<std::string>(attackMonsterList->Items[j]->ToString());
-                            if (monsterName == targetMonster)
+                            entityListPointer = ReadPointer(0x003266D8, { 0xE8C, 0x4, 0x6A4, 0x0 });
+                            monsterID = *((uint32_t*)(entityListPointer) + j);
+                            monsterName = (string)(const char*)*(uint32_t*)((*(uint32_t*)(monsterID + 0x1BC)) + 0x04);
+                            for (int k = 0; k < (int)this->monsters_ListBox->Items->Count; ++k)
                             {
                                 monsterInRange = (monsterID + 0x8C);
                                 monsterInRange = *(uint32_t*)monsterInRange;
                                 if (monsterInRange != 0)
                                 {
-                                    monsterPos = monsterID + 0x0C;
-                                    myPos = *(uint32_t*)myPosPointer;
-                                    myX = myPos & 0xFF;
-                                    myY = (myPos >> 16) & 0xFF;
-                                    monsterPos = *(uint32_t*)monsterPos;
-                                    monsterX = monsterPos & 0xFF;
-                                    monsterY = (monsterPos >> 16) & 0xFF;
-                                    distanceX = abs(myX - monsterX);
-                                    distanceY = abs(myY - monsterY);
-                                    monsterStatus = monsterID + 0x08;
-                                    while (distanceX < 9 && distanceY < 9 && *(uint32_t*)monsterStatus != 0xFFFFFFFF)
+                                    if (monsterName == msclr::interop::marshal_as<std::string>(monsters_ListBox->Items[k]->ToString()))
                                     {
-                                        for (int k = 0; k < (int)this->useSkillList->Items->Count; ++k)
+                                        monsterPos = monsterID + 0x0C;
+                                        myPos = *(uint32_t*)myPosPointer;
+                                        myX = myPos & 0xFF;
+                                        myY = (myPos >> 16) & 0xFF;
+                                        monsterPos = *(uint32_t*)monsterPos;
+                                        monsterX = monsterPos & 0xFF;
+                                        monsterY = (monsterPos >> 16) & 0xFF;
+                                        distanceX = abs(myX - monsterX);
+                                        distanceY = abs(myY - monsterY);
+                                        monsterStatus = monsterID + 0x08;
+                                        DWORD skillCooldown = ReadPointer(0x004C46DC, { 0x3A8, 0xFB4 });
+                                        while (distanceX < 9 && distanceY < 9 && *(uint32_t*)monsterStatus != 0xFFFFFFFF)
                                         {
-                                            int skill = System::Convert::ToInt32(this->useSkillList->Items[k]->ToString()->Split(' ')[0]);
-                                            int value = *(int*)(skillCooldown + (0x120 * skill));
-                                            if (value == 1)
+                                            for (int h = 0; h < (int)this->skills_Listbox->Items->Count; ++h)
                                             {
-                                                AttackMonster(monsterID, skill);
-                                                Sleep(300);
-                                                continue;
+                                                int skill = System::Convert::ToInt32(this->skills_Listbox->Items[k]->ToString()->Split(' ')[0]);
+                                                int value = *(int*)(skillCooldown + (0x120 * skill));
+                                                if (value == 1)
+                                                {
+                                                    AttackMonster(monsterID, skill);
+                                                    Sleep(0.9);
+                                                    break;
+                                                }
                                             }
-                                            Sleep(100);
+                                            AttackMonster(monsterID, 0);
+                                            Sleep(0.9);
                                         }
-                                        AttackMonster(monsterID, 0);
-                                        Sleep(300);
                                     }
                                 }
                             }
+                            Sleep(0.01);
                         }
-                        monsterCount = *(uint32_t*)monsterCountPointer;
                         ++i;
+                        this->waypoints_ListBox->SetSelected(i, TRUE);
+                        MoveTo((uint32_t)this->waypoints_ListBox->Items[i]);
+                        Sleep(2);
                     }
-                    this->walkingOn = true;
-                    Sleep(100);
-                    i = 0;
+                    Sleep(2);
+                    timer += 2;
+                    if (timer >= 10)
+                    {
+                        this->waypoints_ListBox->SetSelected(i, TRUE);
+                        MoveTo((uint32_t)this->waypoints_ListBox->Items[i]);
+                        timer = 0;
+                    }
                 }
             }
         }

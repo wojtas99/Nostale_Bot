@@ -1,1 +1,5 @@
-﻿  NostaleBot.vcxproj -> C:\Users\blazz\Desktop\Gry\Nostale_Bot\Release\NostaleBot.dll
+﻿  gui.cpp
+C:\ProjektyGit\Nostale_Bot\gui.h(346,59): warning C4244: 'argument': conversion from 'double' to 'DWORD', possible loss of data
+C:\ProjektyGit\Nostale_Bot\gui.h(351,51): warning C4244: 'argument': conversion from 'double' to 'DWORD', possible loss of data
+C:\ProjektyGit\Nostale_Bot\gui.h(356,35): warning C4244: 'argument': conversion from 'double' to 'DWORD', possible loss of data
+  NostaleBot.vcxproj -> C:\ProjektyGit\Nostale_Bot\Release\NostaleBot.dll
