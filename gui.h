@@ -179,7 +179,7 @@ namespace easyBot
         //###################### Close Main_Form ######################
         System::Void main_form_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e)
         {
-            this->mainBot_Worker->CancelAsync();
+            mainBot_Worker->CancelAsync();
         }
         //###################### Button Functions ######################
         //###################### StartBot ######################
@@ -189,13 +189,13 @@ namespace easyBot
             {
                 startBot_Button->BackColor = Color::Green;
                 startBot_Button->Text = "Stop Bot";
-                this->mainBot_Worker->RunWorkerAsync();
+                mainBot_Worker->RunWorkerAsync();
             }
             else
             {
                 startBot_Button->BackColor = Color::Red;
                 startBot_Button->Text = "Start Bot";
-                this->mainBot_Worker->CancelAsync();
+                mainBot_Worker->CancelAsync();
             }
         }
         //###################### Add Waypoint Button ######################
@@ -209,48 +209,48 @@ namespace easyBot
         System::Void addMonster(System::Object^ sender, System::EventArgs^ e)
         {
             if (monsters_ComboBox->SelectedItem != nullptr)
-                monsters_ListBox->Items->Add(this->monsters_ComboBox->SelectedItem->ToString());
+                monsters_ListBox->Items->Add(monsters_ComboBox->SelectedItem->ToString());
         }
         //###################### Add Spell Button ######################
         System::Void addSkill(System::Object^ sender, System::EventArgs^ e)
         {
             if (skills_ComboBox->SelectedItem != nullptr)
-                skills_Listbox->Items->Add(this->skills_ComboBox->SelectedIndex + " " + this->skills_ComboBox->SelectedItem->ToString());
+                skills_Listbox->Items->Add(skills_ComboBox->SelectedIndex + " " + skills_ComboBox->SelectedItem->ToString());
         }
         //###################### Remove Monster ######################
         System::Void removeMonsterFromList(Object^ sender, EventArgs^ e)
         {
-            if (this->monsters_ListBox->SelectedItem != nullptr)
+            if (monsters_ListBox->SelectedItem != nullptr)
             {
-                this->monsters_ListBox->Items->Remove(monsters_ListBox->SelectedItem);
+                monsters_ListBox->Items->Remove(monsters_ListBox->SelectedItem);
             }
         }
         //###################### Remove Skill ######################
         System::Void removeSkillFromList(Object^ sender, EventArgs^ e)
         {
-            if (this->skills_Listbox->SelectedItem != nullptr)
+            if (skills_Listbox->SelectedItem != nullptr)
             {
-                this->skills_Listbox->Items->Remove(skills_Listbox->SelectedItem);
+                skills_Listbox->Items->Remove(skills_Listbox->SelectedItem);
             }
         }
         //###################### Refresh Skill List Button ######################
         System::Void refreshSkills(System::Object^ sender, System::EventArgs^ e)
         {
             DWORD skillListPointer = ReadPointer(0x004C3E5C, { 0x1BC, 0xF0, 0x0, 0x170, 0x7F4 });
-            this->skills_ComboBox->Items->Clear();
+            skills_ComboBox->Items->Clear();
             uint32_t skill = (uint32_t)skillListPointer - 0x2A0 * 3;
             for (int i = 0; i < 11; ++i)
             {
-                this->skills_ComboBox->Items->Add(gcnew System::String((const char*)*(uint32_t*)(skill + 0x2A0 * i)));
+                skills_ComboBox->Items->Add(gcnew System::String((const char*)*(uint32_t*)(skill + 0x2A0 * i)));
             }
-            this->skills_ComboBox->SelectedIndex = 0;
+            skills_ComboBox->SelectedIndex = 0;
         }
         //###################### Refresh Monsters List Button ######################
         System::Void refreshMonsters(System::Object^ sender, System::EventArgs^ e)
         {
             DWORD entityListPointer = ReadPointer(0x003266D8, { 0xE8C, 0x4, 0x6A4, 0x0 });
             DWORD monsterCountPointer = ReadPointer(0x003282C0, { 0x08, 0x04, 0x7C, 0x04, 0x528 });
-            this->monsters_ComboBox->Items->Clear();
+            monsters_ComboBox->Items->Clear();
             bool found = 0;
             int monsterCount = *(uint32_t*)monsterCountPointer;
             EntityList** monsters = (EntityList**)malloc(monsterCount * sizeof(EntityList*));
@@ -259,9 +259,9 @@ namespace easyBot
                 *(monsters + i) = (EntityList*)*((uint32_t*)(entityListPointer)+i);
                 (*(monsters + i))->monsterNamePointer = (uint32_t*)((uint32_t) * (monsters + i) + 0x1BC);
                 (*(monsters + i))->monsterNamePointer = (uint32_t*)((*(uint32_t*)((*(monsters + i))->monsterNamePointer)) + 0x04);
-                for (int tmp = 0; tmp < (int)this->monsters_ComboBox->Items->Count; ++tmp)
+                for (int tmp = 0; tmp < (int)monsters_ComboBox->Items->Count; ++tmp)
                 {
-                    if (gcnew System::String((const char*)*(uint32_t*)((*(monsters + i))->monsterNamePointer)) == (this->monsters_ComboBox->Items[tmp]->ToString()))
+                    if (gcnew System::String((const char*)*(uint32_t*)((*(monsters + i))->monsterNamePointer)) == (monsters_ComboBox->Items[tmp]->ToString()))
                     {
                         found = 1;
                         break;
@@ -269,18 +269,17 @@ namespace easyBot
                 }
                 if (!found)
                 {
-                    this->monsters_ComboBox->Items->Add(gcnew System::String((const char*)*(uint32_t*)((*(monsters + i))->monsterNamePointer)));
+                    monsters_ComboBox->Items->Add(gcnew System::String((const char*)*(uint32_t*)((*(monsters + i))->monsterNamePointer)));
                 }
                 found = 0;
             }
-            this->monsters_ComboBox->SelectedIndex = 0;
+            monsters_ComboBox->SelectedIndex = 0;
             free(monsters);
         }
         //###################### StartWalker ######################
         System::Void startBot_thread(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e)
         {
             string monsterName;
-
             int myPos;
             int monsterInRange;
             int myX;
@@ -289,86 +288,88 @@ namespace easyBot
             int monsterY;
             int distanceX;
             int distanceY;
-
+            int skill;
+            int value;
+            int waypoint = 0;
             double timer = 0;
-
             DWORD monsterCountPointer;
             DWORD monsterID;
             DWORD monsterPos;
             DWORD monsterStatus;
             DWORD entityListPointer;
             DWORD myPosPointer = ReadPointer(0x004C4E4C, { 0x560, 0x1C, 0x10, 0xB60, 0x0C });
-
-
-            this->waypoints_ListBox->SetSelected(0, TRUE);
-            MoveTo((uint32_t)this->waypoints_ListBox->Items[0]);
-            while (!this->mainBot_Worker->CancellationPending)
+            waypoints_ListBox->SetSelected(0, TRUE);
+            MoveTo((uint32_t)waypoints_ListBox->Items[0]);
+            while (!mainBot_Worker->CancellationPending)
             {
-                for (int i = 0; i < (int)this->waypoints_ListBox->Items->Count - 1;)
-                {
-                    if ((uint32_t)*(uint32_t*)myPosPointer == (uint32_t)this->waypoints_ListBox->Items[i])
+                if ((uint32_t)*(uint32_t*)myPosPointer == (uint32_t)waypoints_ListBox->Items[waypoint])
+                {                     
+                    monsterCountPointer = ReadPointer(0x003282C0, { 0x08, 0x04, 0x7C, 0x04, 0x528 });
+                    for (int monster = 0; monster < (int)*(uint32_t*)monsterCountPointer; ++monster)
                     {
-                        timer = 0;
-                        monsterCountPointer = ReadPointer(0x003282C0, { 0x08, 0x04, 0x7C, 0x04, 0x528 });
-                        for (int j = 0; j < (int)*(uint32_t*)monsterCountPointer; ++j)
+                        Sleep(10);
+                        entityListPointer = ReadPointer(0x003266D8, { 0xE8C, 0x4, 0x6A4, 0x0 });
+                        monsterID = *((uint32_t*)(entityListPointer) + monster);
+                        monsterName = (string)(const char*)*(uint32_t*)((*(uint32_t*)(monsterID + 0x1BC)) + 0x04);
+                        for (int monsterAttack = 0; monsterAttack < (int)monsters_ListBox->Items->Count; ++monsterAttack)
                         {
-                            entityListPointer = ReadPointer(0x003266D8, { 0xE8C, 0x4, 0x6A4, 0x0 });
-                            monsterID = *((uint32_t*)(entityListPointer) + j);
-                            monsterName = (string)(const char*)*(uint32_t*)((*(uint32_t*)(monsterID + 0x1BC)) + 0x04);
-                            for (int k = 0; k < (int)this->monsters_ListBox->Items->Count; ++k)
+                            Sleep(10);
+                            monsterInRange = (monsterID + 0x8C);
+                            monsterInRange = *(uint32_t*)monsterInRange;
+                            if (monsterInRange != 0)
                             {
-                                monsterInRange = (monsterID + 0x8C);
-                                monsterInRange = *(uint32_t*)monsterInRange;
-                                if (monsterInRange != 0)
+                                if (monsterName == msclr::interop::marshal_as<std::string>(monsters_ListBox->Items[monsterAttack]->ToString()))
                                 {
-                                    if (monsterName == msclr::interop::marshal_as<std::string>(monsters_ListBox->Items[k]->ToString()))
+                                    monsterPos = monsterID + 0x0C;
+                                    myPos = *(uint32_t*)myPosPointer;
+                                    myX = myPos & 0xFF;
+                                    myY = (myPos >> 16) & 0xFF;
+                                    monsterPos = *(uint32_t*)monsterPos;
+                                    monsterX = monsterPos & 0xFF;
+                                    monsterY = (monsterPos >> 16) & 0xFF;
+                                    distanceX = abs(myX - monsterX);
+                                    distanceY = abs(myY - monsterY);
+                                    monsterStatus = monsterID + 0x08;
+                                    DWORD skillCooldown = ReadPointer(0x004C46DC, { 0x3A8, 0xFB4 });
+                                    while (distanceX < 9 && distanceY < 9 && *(uint32_t*)monsterStatus != 0xFFFFFFFF)
                                     {
-                                        monsterPos = monsterID + 0x0C;
-                                        myPos = *(uint32_t*)myPosPointer;
-                                        myX = myPos & 0xFF;
-                                        myY = (myPos >> 16) & 0xFF;
-                                        monsterPos = *(uint32_t*)monsterPos;
-                                        monsterX = monsterPos & 0xFF;
-                                        monsterY = (monsterPos >> 16) & 0xFF;
-                                        distanceX = abs(myX - monsterX);
-                                        distanceY = abs(myY - monsterY);
-                                        monsterStatus = monsterID + 0x08;
-                                        DWORD skillCooldown = ReadPointer(0x004C46DC, { 0x3A8, 0xFB4 });
-                                        while (distanceX < 9 && distanceY < 9 && *(uint32_t*)monsterStatus != 0xFFFFFFFF)
+                                        for (int tmp = 0; tmp < (int)skills_Listbox->Items->Count; ++tmp)
                                         {
-                                            for (int h = 0; h < (int)this->skills_Listbox->Items->Count; ++h)
+                                            skill = System::Convert::ToInt32(skills_Listbox->Items[tmp]->ToString()->Split(' ')[0]);
+                                            value = *(int*)(skillCooldown + (0x120 * skill));
+                                            if (value == 1)
                                             {
-                                                int skill = System::Convert::ToInt32(this->skills_Listbox->Items[k]->ToString()->Split(' ')[0]);
-                                                int value = *(int*)(skillCooldown + (0x120 * skill));
-                                                if (value == 1)
-                                                {
-                                                    AttackMonster(monsterID, skill);
-                                                    Sleep(0.9);
-                                                    break;
-                                                }
+                                                AttackMonster(monsterID, skill);
+                                                break;
                                             }
-                                            AttackMonster(monsterID, 0);
-                                            Sleep(0.9);
                                         }
+                                        AttackMonster(monsterID, 0);
                                     }
                                 }
                             }
-                            Sleep(0.01);
                         }
-                        ++i;
-                        this->waypoints_ListBox->SetSelected(i, TRUE);
-                        MoveTo((uint32_t)this->waypoints_ListBox->Items[i]);
-                        Sleep(2);
                     }
-                    Sleep(2);
-                    timer += 2;
-                    if (timer >= 10)
+                    if (waypoint < (int)waypoints_ListBox->Items->Count - 1)
                     {
-                        this->waypoints_ListBox->SetSelected(i, TRUE);
-                        MoveTo((uint32_t)this->waypoints_ListBox->Items[i]);
-                        timer = 0;
+                        ++waypoint;
                     }
+                    else
+                    {
+                        waypoint = 0;
+                    }
+                    Sleep(900);
+                    waypoints_ListBox->SetSelected(waypoint, TRUE);
+                    MoveTo((uint32_t)waypoints_ListBox->Items[waypoint]);
+                    timer = 0;
                 }
+                timer += 0.05;
+                if (timer > 5.0)
+                {
+                    waypoints_ListBox->SetSelected(waypoint, TRUE);
+                    MoveTo((uint32_t)waypoints_ListBox->Items[waypoint]);
+                    timer = 0;
+                }
+                Sleep(50);
             }
         }
     };
