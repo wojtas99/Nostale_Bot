@@ -43,8 +43,9 @@ namespace easyBot
         DWORD monsterCountPointer = ReadPointer(0x003282C0, { 0x08, 0x04, 0x7C, 0x04, 0x528 });
         DWORD myPosPointer = ReadPointer(0x004C4E4C, { 0x560, 0x1C, 0x10, 0xB60, 0x0C });
         DWORD entityListPointer = ReadPointer(0x003266D8, { 0xE8C, 0x4, 0x6A4, 0x0 });
-        DWORD skillListPointer = ReadPointer(0x003266D8, { 0xE8C, 0x4, 0x6A4, 0x0 });
-
+        
+        DWORD skillCooldown = ReadPointer(0x004C46DC, { 0x3A8, 0xFB4 });
+    
         System::Windows::Forms::TabControl^ tabView;
 
         System::ComponentModel::BackgroundWorker^ attackWorker;
@@ -120,7 +121,6 @@ namespace easyBot
             labelMonsterList->Location = Point(179, 29);
             labelMonsterList->Text = "Monster :";
             targetTab->Controls->Add(labelMonsterList);
-
             //###################### LabelMonsterAttack #####################
             labelMonsterAttack = gcnew System::Windows::Forms::Label();
             labelMonsterAttack->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 10, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
@@ -288,14 +288,14 @@ namespace easyBot
         //###################### Refresh Skill List Button ######################
         System::Void refreshSkillsList(System::Object^ sender, System::EventArgs^ e)
         {
+            DWORD skillListPointer = ReadPointer(0x004C3E5C, { 0x1BC, 0xF0, 0x0, 0x170, 0x7F4 });
             this->skillList->Items->Clear();
-            uint32_t skill = *(uint32_t*)skillListPointer;
-            skill -= 0xA6C;
+            uint32_t skill = (uint32_t)skillListPointer - 0x2A0*3;
             for (int i = 0; i < 11; ++i)
             {
                 this->skillList->Items->Add(gcnew System::String((const char*)*(uint32_t*)(skill + 0x2A0 * i)));
             }
-            this->skillList->SelectedIndex = 0;
+             this->skillList->SelectedIndex = 0;
         }
         //###################### Refresh Monster List Button ######################
         System::Void refreshTargetList(System::Object^ sender, System::EventArgs^ e)
@@ -340,7 +340,7 @@ namespace easyBot
         //###################### Add Spell Button ######################
         System::Void addSpell(System::Object^ sender, System::EventArgs^ e)
         {
-            useSkillList->Items->Add(this->skillList->SelectedItem->ToString());
+            useSkillList->Items->Add(this->skillList->SelectedIndex + " " + this->skillList->SelectedItem->ToString());
         }
         //###################### Remove Monster ######################
         System::Void removeMonsterFromList(Object^ sender, EventArgs^ e)
@@ -382,7 +382,7 @@ namespace easyBot
                         this->waypointList->SetSelected(i, TRUE);
                         waypointPos = (unsigned int)this->waypointList->Items[i];
                         MoveTo(waypointPos);
-                        if (i >= tmp)
+                        if (i >= tmp-1)
                         {
                             i = 0;
                             this->waypointList->SetSelected(i, TRUE);
@@ -454,9 +454,22 @@ namespace easyBot
                                     distanceX = abs(myX - monsterX);
                                     distanceY = abs(myY - monsterY);
                                     monsterStatus = monsterID + 0x08;
-                                    while (distanceX < 8 && distanceY < 8 && *(uint32_t*)monsterStatus != 0xFFFFFFFF)
+                                    while (distanceX < 9 && distanceY < 9 && *(uint32_t*)monsterStatus != 0xFFFFFFFF)
                                     {
+                                        for (int k = 0; k < (int)this->useSkillList->Items->Count; ++k)
+                                        {
+                                            int skill = System::Convert::ToInt32(this->useSkillList->Items[k]->ToString()->Split(' ')[0]);
+                                            int value = *(int*)(skillCooldown + (0x120 * skill));
+                                            if (value == 1)
+                                            {
+                                                AttackMonster(monsterID, skill);
+                                                Sleep(300);
+                                                continue;
+                                            }
+                                            Sleep(100);
+                                        }
                                         AttackMonster(monsterID, 0);
+                                        Sleep(300);
                                     }
                                 }
                             }
