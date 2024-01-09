@@ -49,6 +49,7 @@ namespace easyBot
         System::Windows::Forms::TabPage^ mainTab;
         System::Windows::Forms::TabPage^ waypointTab;
         System::Windows::Forms::TabPage^ targetTab;
+        System::Windows::Forms::TabPage^ healingTab;
 
         System::ComponentModel::BackgroundWorker^ mainBot_Worker;
 
@@ -62,11 +63,13 @@ namespace easyBot
         System::Windows::Forms::Button^ addMonster_Button;
         System::Windows::Forms::Button^ addSkill_Button;
         System::Windows::Forms::Button^ refreshSkills_Button;
+        System::Windows::Forms::Button^ refreshHealing_Button;
 
         System::Windows::Forms::ComboBox^ monsters_ComboBox;
         System::Windows::Forms::ComboBox^ skills_ComboBox;
+        System::Windows::Forms::ComboBox^ healing_ComboBox;
 
-        bool walkingOn = false;
+        int waypoint = 0;
         //################ GRAPHIC USER INTERFACE ##############
         void InitializeComponent(void)
         {
@@ -82,12 +85,17 @@ namespace easyBot
             waypointTab = gcnew System::Windows::Forms::TabPage();
             waypointTab->Text = "Cavebot";
 
+            //################ HealingTab ####################
+            healingTab = gcnew System::Windows::Forms::TabPage();
+            healingTab->Text = "Healing";
+
             //################   TabView   ####################
             tabView = gcnew System::Windows::Forms::TabControl();
             tabView->Dock = System::Windows::Forms::DockStyle::Fill;
             tabView->TabPages->Add(mainTab);
             tabView->TabPages->Add(waypointTab);
             tabView->TabPages->Add(targetTab);
+            tabView->TabPages->Add(healingTab);
             Controls->Add(tabView);
 
             //################ Background Workers ####################
@@ -136,6 +144,7 @@ namespace easyBot
             skills_Listbox->Size = System::Drawing::Size(150, 200);
             skills_Listbox->Location = Point(180, 0);
             skills_Listbox->DoubleClick += gcnew EventHandler(this, &main_form::removeSkillFromList);
+
             //###################### Combo Boxes ######################
             monsters_ComboBox = gcnew System::Windows::Forms::ComboBox();
             monsters_ComboBox->Location = Point(0, 200);
@@ -173,6 +182,22 @@ namespace easyBot
             targetTab->Controls->Add(addMonster_Button);
             targetTab->Controls->Add(addSkill_Button);
             targetTab->Controls->Add(refreshMonsters_Button);
+
+            //######################   Healing Tab ######################
+            //###################### Combo Boxes ######################
+
+            healing_ComboBox = gcnew System::Windows::Forms::ComboBox();
+            healing_ComboBox->Location = Point(0, 200);
+
+            //######################    Buttons    ########################
+            refreshHealing_Button = gcnew System::Windows::Forms::Button();
+            refreshHealing_Button->Location = Point(0, 240);
+            refreshHealing_Button->Text = "Refresh";
+            refreshHealing_Button->Click += gcnew EventHandler(this, &main_form::refreshHealing);
+
+            //##################### Add to Healing Tab ######################
+            healingTab->Controls->Add(healing_ComboBox);
+            healingTab->Controls->Add(refreshHealing_Button);
         }
 #pragma endregion
         //###################### Functions       ######################
@@ -245,6 +270,44 @@ namespace easyBot
             }
             skills_ComboBox->SelectedIndex = 0;
         }
+        //###################### Refresh Skill List Button ######################
+        System::Void refreshHealing(System::Object^ sender, System::EventArgs^ e)
+        {
+            DWORD healingListPointer = ReadPointer(0x004C4DF8, { 0xEC, 0x220, 0x4, 0xF0, 0x988 });
+            DWORD tmpPointer;
+            healing_ComboBox->Items->Clear();
+            for (int i = 0; i < 84; ++i)
+            {
+                tmpPointer = healingListPointer;
+                tmpPointer += i * 0x28;
+                tmpPointer = *(DWORD*)tmpPointer;
+                if ((int)tmpPointer == 0)
+                    continue;
+                tmpPointer += 0x08;
+                tmpPointer = *(DWORD*)tmpPointer;
+                if ((int)*(DWORD*)(tmpPointer + 0x0C) > 10)
+                {
+                    tmpPointer += 0x38;
+                    healing_ComboBox->Items->Add(gcnew System::String((const char*)*(uint32_t*)(tmpPointer)));
+                }
+            }
+            healingListPointer = ReadPointer(0x004C463C, { 0x21C, 0x04, 0xF0, 0x960 });
+            for (int i = 0; i < 84; ++i)
+            {
+                tmpPointer = healingListPointer;
+                tmpPointer += i * 0x28;
+                tmpPointer = *(DWORD*)tmpPointer;
+                if ((int)tmpPointer == 0)
+                    continue;
+                tmpPointer += 0x08;
+                tmpPointer = *(DWORD*)tmpPointer;
+                if ((int)*(DWORD*)(tmpPointer + 0x0C) > 10)
+                {
+                    tmpPointer += 0x38;
+                    healing_ComboBox->Items->Add(gcnew System::String((const char*)*(uint32_t*)(tmpPointer)));
+                }
+            }
+        }
         //###################### Refresh Monsters List Button ######################
         System::Void refreshMonsters(System::Object^ sender, System::EventArgs^ e)
         {
@@ -281,7 +344,6 @@ namespace easyBot
         {
             string monsterName;
             int myPos;
-            int monsterInRange;
             int myX;
             int myY;
             int monsterX;
@@ -289,8 +351,6 @@ namespace easyBot
             int distanceX;
             int distanceY;
             int skill;
-            int value;
-            int waypoint = 0;
             double timer = 0;
             DWORD monsterCountPointer;
             DWORD monsterID;
@@ -298,8 +358,8 @@ namespace easyBot
             DWORD monsterStatus;
             DWORD entityListPointer;
             DWORD myPosPointer = ReadPointer(0x004C4E4C, { 0x560, 0x1C, 0x10, 0xB60, 0x0C });
-            waypoints_ListBox->SetSelected(0, TRUE);
-            MoveTo((uint32_t)waypoints_ListBox->Items[0]);
+            waypoints_ListBox->SetSelected(waypoint, TRUE);
+            MoveTo((uint32_t)waypoints_ListBox->Items[waypoint]);
             while (!mainBot_Worker->CancellationPending)
             {
                 if ((uint32_t)*(uint32_t*)myPosPointer == (uint32_t)waypoints_ListBox->Items[waypoint])
@@ -307,44 +367,33 @@ namespace easyBot
                     monsterCountPointer = ReadPointer(0x003282C0, { 0x08, 0x04, 0x7C, 0x04, 0x528 });
                     for (int monster = 0; monster < (int)*(uint32_t*)monsterCountPointer; ++monster)
                     {
-                        Sleep(10);
                         entityListPointer = ReadPointer(0x003266D8, { 0xE8C, 0x4, 0x6A4, 0x0 });
-                        monsterID = *((uint32_t*)(entityListPointer) + monster);
+                        monsterID = *((uint32_t*)(entityListPointer)+monster);
                         monsterName = (string)(const char*)*(uint32_t*)((*(uint32_t*)(monsterID + 0x1BC)) + 0x04);
                         for (int monsterAttack = 0; monsterAttack < (int)monsters_ListBox->Items->Count; ++monsterAttack)
                         {
-                            Sleep(10);
-                            monsterInRange = (monsterID + 0x8C);
-                            monsterInRange = *(uint32_t*)monsterInRange;
-                            if (monsterInRange != 0)
+                            if (monsterName == msclr::interop::marshal_as<std::string>(monsters_ListBox->Items[monsterAttack]->ToString()))
                             {
-                                if (monsterName == msclr::interop::marshal_as<std::string>(monsters_ListBox->Items[monsterAttack]->ToString()))
+                                monsterPos = monsterID + 0x0C;
+                                myPos = *(uint32_t*)myPosPointer;
+                                myX = myPos & 0xFF;
+                                myY = (myPos >> 16) & 0xFF;
+                                monsterPos = *(uint32_t*)monsterPos;
+                                monsterX = monsterPos & 0xFF;
+                                monsterY = (monsterPos >> 16) & 0xFF;
+                                distanceX = abs(myX - monsterX);
+                                distanceY = abs(myY - monsterY);
+                                monsterStatus = monsterID + 0x08;
+                                DWORD skillCooldown = ReadPointer(0x004C4698, { 0xC40, 0x14, 0x8, 0xF4, 0x234 });
+                                while (distanceX < 9 && distanceY < 9 && *(uint32_t*)monsterStatus != 0xFFFFFFFF)
                                 {
-                                    monsterPos = monsterID + 0x0C;
-                                    myPos = *(uint32_t*)myPosPointer;
-                                    myX = myPos & 0xFF;
-                                    myY = (myPos >> 16) & 0xFF;
-                                    monsterPos = *(uint32_t*)monsterPos;
-                                    monsterX = monsterPos & 0xFF;
-                                    monsterY = (monsterPos >> 16) & 0xFF;
-                                    distanceX = abs(myX - monsterX);
-                                    distanceY = abs(myY - monsterY);
-                                    monsterStatus = monsterID + 0x08;
-                                    DWORD skillCooldown = ReadPointer(0x004C46DC, { 0x3A8, 0xFB4 });
-                                    while (distanceX < 9 && distanceY < 9 && *(uint32_t*)monsterStatus != 0xFFFFFFFF)
+                                    for (int tmp = 0; tmp < (int)skills_Listbox->Items->Count; ++tmp)
                                     {
-                                        for (int tmp = 0; tmp < (int)skills_Listbox->Items->Count; ++tmp)
-                                        {
-                                            skill = System::Convert::ToInt32(skills_Listbox->Items[tmp]->ToString()->Split(' ')[0]);
-                                            value = *(int*)(skillCooldown + (0x120 * skill));
-                                            if (value == 1)
-                                            {
-                                                AttackMonster(monsterID, skill);
-                                                break;
-                                            }
-                                        }
-                                        AttackMonster(monsterID, 0);
+                                        skill = System::Convert::ToInt32(skills_Listbox->Items[tmp]->ToString()->Split(' ')[0]);
+                                        AttackMonster(monsterID, skill);
                                     }
+                                    AttackMonster(monsterID, 0);
+                                    Sleep(50);
                                 }
                             }
                         }
@@ -357,19 +406,19 @@ namespace easyBot
                     {
                         waypoint = 0;
                     }
-                    Sleep(900);
+                    Sleep(500);
                     waypoints_ListBox->SetSelected(waypoint, TRUE);
                     MoveTo((uint32_t)waypoints_ListBox->Items[waypoint]);
                     timer = 0;
                 }
-                timer += 0.05;
+                timer += 0.01;
                 if (timer > 5.0)
                 {
                     waypoints_ListBox->SetSelected(waypoint, TRUE);
                     MoveTo((uint32_t)waypoints_ListBox->Items[waypoint]);
                     timer = 0;
                 }
-                Sleep(50);
+                Sleep(10);
             }
         }
     };
