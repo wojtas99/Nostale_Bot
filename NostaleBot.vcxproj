@@ -22,7 +22,11 @@
     <ClCompile Include="CallFunction.c" />
     <ClCompile Include="dllmain.c" />
     <ClCompile Include="gui.cpp" />
+    <ClCompile Include="HealingTab.cpp" />
+    <ClCompile Include="MainTab.cpp" />
     <ClCompile Include="memscan.c" />
+    <ClCompile Include="TargetTab.cpp" />
+    <ClCompile Include="WalkerTab.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CallFunction.h" />
