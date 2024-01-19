@@ -2,26 +2,37 @@
 #include <iostream>
 
 const BYTE MOVE_PATTERN[] = { 0x55, 0x8B, 0xEC, 0x83, 0xC4, 0x00, 0x53, 0x56, 0x57, 0x66, 0x89, 0x00, 0x00, 0x89, 0x55 };
-const BYTE MOVE_THIS_PATTERN[] = { 0x80, 0x26, 0x00, 0x00, 0x00, 0x00 , 0x00, 0x00, 0x58 };
+const BYTE MOVE_THIS_PATTERN[] = { 0x50, 0x48, 0x00, 0x00, 0x40 };
 
 const BYTE ATTACK_PATTERN[] = { 0x6A, 0x00, 0x6A, 0x00, 0x6A, 0x00, 0xE8, 0x00, 0x00, 0x00, 0x00, 0xC3, 0x55};
-const BYTE ATTACK_THIS_PATTERN[] = { 0x88, 0xD5, 0x8B, 0x00, 0x2C };
+const BYTE ATTACK_THIS_PATTERN[] = { 0x90, 0x3E, 0x42, 0x00, 0x38 };
 
+const BYTE COLLECT_PATTERN[] = { 0x55, 0x8B, 0xEC, 0x6A, 0x00, 0x6A, 0x00, 0x6A, 0x00, 0x6A, 0x00, 0x53, 0x56, 0x8B, 0XD9, 0X8B, 0xF2, 0X33, 0XC0, 0X55, 0X68, 0X00, 0X00, 0X00, 0X00, 0X64, 0XFF, 0X00, 0X64, 0X89, 0X00, 0XA1 };
+const BYTE COLLECT_THIS_PATTERN[] = { 0x20, 0x4A, 0x00, 0x00, 0xFC};
 
-LPCSTR SEND_MASK = "xxxxxxxx";
-LPCSTR RECV_MASK = "xxxxxxxxxxxxx?xx?xx?xxxx?";
-LPCSTR PACKET_THIS_MASK = "x????xxx????x????xxxxxx";
+const BYTE REST_PATTERN[] = { 0x55, 0x8B, 0xEC, 0xB9, 0x00, 0x00, 0x00, 0x00, 0x6A, 0x00, 0x6A, 0x00, 0x49, 0x75, 0x00, 0x51, 0x53, 0x56, 0x57, 0x33, 0xC0 };
 
 LPCSTR MOVE_MASK = "xxxxx?xxxxx??xx";
-LPCSTR MOVE_THIS_MASK = "xx??????x";
+LPCSTR MOVE_THIS_MASK = "xx??x";
 
 LPCSTR ATTACK_MASK = "x?x?x?x????xx";
 LPCSTR ATTACK_THIS_MASK = "xxxxx";
 
+LPCSTR COLLECT_MASK = "xxxx?x?x?x?xxxxxxxxxx????xx?xx?x";
+LPCSTR COLLECT_THIS_MASK = "xx?xx";
+
+LPCSTR REST_MASK = "xxxx????x?x?xx?xxxxxx";
+
 LPVOID lpvMove;
 LPVOID lpvMoveThis;
+
 LPVOID lpvAttack;
 LPVOID lpvAttackThis;
+
+LPVOID lpvCollect;
+LPVOID lpvCollectThis;
+
+LPVOID lpvRest;
 #pragma managed(push, off)
 void MoveTo(uint32_t waypoint)
 {
@@ -31,6 +42,7 @@ void MoveTo(uint32_t waypoint)
         XOR ECX, ECX
         MOV EDX, waypoint
         MOV EAX, [lpvMoveThis]
+        MOV EAX, [EAX]
         CALL lpvMove
     }
 }
@@ -45,6 +57,28 @@ void AttackMonster(uint32_t monster, short skill)
         CALL lpvAttack
     }
 }
+void Rest(void)
+{
+    _asm
+    {
+        MOV EAX, 0xE3250B0
+        CALL lpvRest
+    }
+}
+void Collect(uint32_t item)
+{
+    DWORD characterPointer = ReadPointer(0x004C4E4C, { 0x560, 0x1C, 0x10, 0xB60, 0x00 });
+    _asm
+    {
+        MOV EAX, [lpvCollectThis]
+        MOV EAX, [EAX]
+        MOV ECX, [characterPointer]
+        MOV EDX, [ECX]
+        MOV ESI, item
+        MOV EDX, ESI
+        CALL lpvCollect
+    }
+}
 #pragma managed(pop)
 BOOL StartBot()
 {
@@ -55,13 +89,16 @@ BOOL FindAddresses()
 {
     lpvAttack = FindPattern(ATTACK_PATTERN, ATTACK_MASK);
 
-    //lpvAttackThis = *(LPVOID*)FindPattern(ATTACK_THIS_PATTERN, ATTACK_THIS_MASK);
-    lpvAttackThis = (LPVOID)0x007331A4;
+    lpvAttackThis = FindPattern(ATTACK_THIS_PATTERN, ATTACK_THIS_MASK);
 
     lpvMove = FindPattern(MOVE_PATTERN, MOVE_MASK);
 
-    lpvMoveThis = *(LPVOID*)0x008C460C;
+    lpvMoveThis = FindPattern(MOVE_THIS_PATTERN, MOVE_THIS_MASK);
 
-    return lpvMove && lpvMoveThis && lpvAttack && lpvAttackThis;
+    lpvCollect = FindPattern(COLLECT_PATTERN, COLLECT_MASK);
+
+    lpvCollectThis = FindPattern(COLLECT_THIS_PATTERN, COLLECT_THIS_MASK);
+
+    return lpvMove && lpvMoveThis && lpvAttack && lpvAttackThis && lpvCollect && lpvCollectThis;
 }
 
