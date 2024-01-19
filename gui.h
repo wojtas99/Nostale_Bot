@@ -11,9 +11,6 @@ namespace easyBot
     using namespace System::Windows::Forms;
     using namespace System::Data;
     using namespace System::Drawing;
-    /// <summary>
-    /// Summary for main_form
-    /// </summary>
     public ref class main_form : public System::Windows::Forms::Form
     {
     public:
@@ -86,7 +83,6 @@ namespace easyBot
 
         System::Windows::Forms::CheckBox^ attackWhite_CheckBox;
         System::Windows::Forms::CheckBox^ attackBlack_CheckBox;
-
 
         // Walker Tab
         System::Windows::Forms::TabPage^ waypointTab;
@@ -211,22 +207,21 @@ namespace easyBot
             targetSpell_GroupBox->Size = System::Drawing::Size(282, 153);
             targetSpell_GroupBox->Location = Point(12, 191);
 
-            walker_GroupBox = gcnew System::Windows::Forms::GroupBox();
-            walker_GroupBox->Text = "Save && Load settings";
-            walker_GroupBox->Size = System::Drawing::Size(170, 153);
-            walker_GroupBox->Location = Point(300, 191);
+            saveTarget_GroupBox = gcnew System::Windows::Forms::GroupBox();
+            saveTarget_GroupBox->Text = "Save && Load settings";
+            saveTarget_GroupBox->Size = System::Drawing::Size(170, 153);
+            saveTarget_GroupBox->Location = Point(300, 191);
 
             //###################### Combo Boxes ######################
             targetSpell_ComboBox = gcnew System::Windows::Forms::ComboBox();
-            targetSpell_ComboBox->Location = Point(6, 22);
-            targetSpell_ComboBox->Size = System::Drawing::Size(87, 21);
+            targetSpell_ComboBox->Location = Point(120, 20);
+            targetSpell_ComboBox->Size = System::Drawing::Size(65, 21);
             targetSpell_ComboBox->DropDownStyle = ComboBoxStyle::DropDownList;
-            for (int i = 0; i < 10; ++i)
+            for (int i = 0; i < 11; ++i)
             {
                 targetSpell_ComboBox->Items->Add(i);
             }
             targetSpell_ComboBox->SelectedIndex = 0;
-
             //######################     ListBoxes     ######################
             targetWhite_Listbox = gcnew System::Windows::Forms::ListBox();
             targetWhite_Listbox->Size = System::Drawing::Size(207, 134);
@@ -234,7 +229,7 @@ namespace easyBot
 
             targetBlack_Listbox = gcnew System::Windows::Forms::ListBox();
             targetBlack_Listbox->Size = System::Drawing::Size(207, 134);
-            targetBlack_Listbox->Location = Point(10, 10);
+            targetBlack_Listbox->Location = Point(10, 20);
 
             targetSpell_Listbox = gcnew System::Windows::Forms::ListBox();
             targetSpell_Listbox->Size = System::Drawing::Size(104, 121);
@@ -285,10 +280,12 @@ namespace easyBot
             attackWhite_CheckBox = gcnew System::Windows::Forms::CheckBox();
             attackWhite_CheckBox->Location = Point(120, 102);
             attackWhite_CheckBox->Text = "Attack White List";
+            attackWhite_CheckBox->Width = 106;
 
             attackBlack_CheckBox = gcnew System::Windows::Forms::CheckBox();
             attackBlack_CheckBox->Location = Point(120, 79);
             attackBlack_CheckBox->Text = "Attack Black List";
+            attackBlack_CheckBox->Width = 106;
 
             //##################### Add to GroupBoxes ######################
             targetWhite_GroupBox->Controls->Add(targetWhite_Listbox);
@@ -432,56 +429,6 @@ namespace easyBot
             waypointTab->Controls->Add(addWaypoint_GroupBox);
             waypointTab->Controls->Add(saveWalker_GroupBox);
             waypointTab->Controls->Add(currentStatus_GroupBox);
-
-            //######################   Target&Skill Tab ######################
-            //######################     List Boxes     ######################
-            monsters_ListBox = gcnew System::Windows::Forms::ListBox();
-            monsters_ListBox->Size = System::Drawing::Size(150, 200);
-            monsters_ListBox->DoubleClick += gcnew EventHandler(this, &main_form::removeMonsterFromList);
-
-            skills_Listbox = gcnew System::Windows::Forms::ListBox();
-            skills_Listbox->Size = System::Drawing::Size(150, 200);
-            skills_Listbox->Location = Point(180, 0);
-            skills_Listbox->DoubleClick += gcnew EventHandler(this, &main_form::removeSkillFromList);
-
-            //###################### Combo Boxes ######################
-            monsters_ComboBox = gcnew System::Windows::Forms::ComboBox();
-            monsters_ComboBox->Location = Point(0, 200);
-
-            skills_ComboBox = gcnew System::Windows::Forms::ComboBox();
-            skills_ComboBox->Location = Point(180, 200);
-
-
-            //######################    Buttons    ########################
-            addMonster_Button = gcnew System::Windows::Forms::Button();
-            addMonster_Button->Location = System::Drawing::Point(100, 240);
-            addMonster_Button->Text = "Add Monster";
-            addMonster_Button->Click += gcnew EventHandler(this, &main_form::addMonster);
-
-            addSkill_Button = gcnew System::Windows::Forms::Button();
-            addSkill_Button->Location = System::Drawing::Point(280, 240);
-            addSkill_Button->Text = "Add Skill";
-            addSkill_Button->Click += gcnew EventHandler(this, &main_form::addSkill);
-
-            refreshMonsters_Button = gcnew System::Windows::Forms::Button();
-            refreshMonsters_Button->Location = Point(0, 240);
-            refreshMonsters_Button->Text = "Refresh";
-            refreshMonsters_Button->Click += gcnew EventHandler(this, &main_form::refreshMonsters);
-
-            refreshSkills_Button = gcnew System::Windows::Forms::Button();
-            refreshSkills_Button->Location = Point(180, 240);
-            refreshSkills_Button->Text = "Refresh";
-            refreshSkills_Button->Click += gcnew EventHandler(this, &main_form::refreshSkills);
-            targetTab->Controls->Add(refreshSkills_Button);
-
-            //##################### Add to Target&Skill Tab ######################
-            targetTab->Controls->Add(monsters_ComboBox);
-            targetTab->Controls->Add(skills_ComboBox);
-            targetTab->Controls->Add(monsters_ListBox);
-            targetTab->Controls->Add(skills_Listbox);
-            targetTab->Controls->Add(addMonster_Button);
-            targetTab->Controls->Add(addSkill_Button);
-            targetTab->Controls->Add(refreshMonsters_Button);
 
             //######################   Healing Tab ######################
             //######################     GroupBoxes    ######################
@@ -790,17 +737,11 @@ namespace easyBot
             if (*(uint32_t*)myPosPointer != 0)
                 walker_Listbox->Items->Add("X = "+ myX + " Y = " + myY);
         }
-        //###################### Add Target Button ######################
-        System::Void addMonster(System::Object^ sender, System::EventArgs^ e)
-        {
-            if (monsters_ComboBox->SelectedItem != nullptr)
-                monsters_ListBox->Items->Add(monsters_ComboBox->SelectedItem->ToString());
-        }
         //###################### Add Spell Button ######################
-        System::Void addSkill(System::Object^ sender, System::EventArgs^ e)
+        System::Void addSpell(System::Object^ sender, System::EventArgs^ e)
         {
-            if (skills_ComboBox->SelectedItem != nullptr)
-                skills_Listbox->Items->Add(skills_ComboBox->SelectedItem->ToString());
+            if (targetSpell_ComboBox->SelectedItem != nullptr)
+                targetSpell_Listbox->Items->Add(targetSpell_ComboBox->SelectedItem->ToString());
         }
         //###################### Add add Healing Item Button ######################
         System::Void addHealingItem(System::Object^ sender, System::EventArgs^ e)
@@ -814,35 +755,6 @@ namespace easyBot
         {
             if (healingSpells_ComboBox->SelectedItem != nullptr && healingOptionSpells_ComboBox != nullptr && healingSpellFrom_TextBox->Text != "" && healingSpellTo_TextBox->Text != "")
                 healing_Listbox->Items->Add(healingSpells_ComboBox->SelectedIndex);
-        }
-        //###################### Remove Monster ######################
-        System::Void removeMonsterFromList(Object^ sender, EventArgs^ e)
-        {
-            if (monsters_ListBox->SelectedItem != nullptr)
-            {
-                monsters_ListBox->Items->Remove(monsters_ListBox->SelectedItem);
-            }
-        }
-        //###################### Remove Skill ######################
-        System::Void removeSkillFromList(Object^ sender, EventArgs^ e)
-        {
-            if (skills_Listbox->SelectedItem != nullptr)
-            {
-                skills_Listbox->Items->Remove(skills_Listbox->SelectedItem);
-            }
-        }
-        //###################### Refresh Skill List Button ######################
-        System::Void refreshSkills(System::Object^ sender, System::EventArgs^ e)
-        {
-            DWORD skillListPointer = ReadPointer(0X004C3E5C, { 0x1bc, 0xF0, 0x0, 0x170, 0x7F4 });
-            skills_ComboBox->Items->Clear();
-            uint32_t skill = (uint32_t)skillListPointer - 0x2A0 * 4;
-            for (int i = 0; i < 11; ++i)
-            {
-                //gcnew System::String((const char*)*(uint32_t*)(skill + 0x2A0 * i
-                skills_ComboBox->Items->Add(i);
-            }
-            skills_ComboBox->SelectedIndex = 0;
         }
         //###################### Refresh Healing Spell List Button ######################
         System::Void refreshHealingSpell(System::Object^ sender, System::EventArgs^ e)
@@ -905,7 +817,6 @@ namespace easyBot
         {
             DWORD entityListPointer = ReadPointer(0x003266D8, { 0xE8C, 0x4, 0x6A4, 0x0 });
             DWORD monsterCountPointer = ReadPointer(0x003282C0, { 0x08, 0x04, 0x7C, 0x04, 0x528 });
-            monsters_ComboBox->Items->Clear();
             bool found = 0;
             int monsterCount = *(uint32_t*)monsterCountPointer;
             EntityList** monsters = (EntityList**)malloc(monsterCount * sizeof(EntityList*));
@@ -914,9 +825,9 @@ namespace easyBot
                 *(monsters + i) = (EntityList*)*((uint32_t*)(entityListPointer)+i);
                 (*(monsters + i))->monsterNamePointer = (uint32_t*)((uint32_t) * (monsters + i) + 0x1BC);
                 (*(monsters + i))->monsterNamePointer = (uint32_t*)((*(uint32_t*)((*(monsters + i))->monsterNamePointer)) + 0x04);
-                for (int tmp = 0; tmp < (int)monsters_ComboBox->Items->Count; ++tmp)
+                for (int tmp = 0; tmp < (int)targetBlack_Listbox->Items->Count; ++tmp)
                 {
-                    if (gcnew System::String((const char*)*(uint32_t*)((*(monsters + i))->monsterNamePointer)) == (monsters_ComboBox->Items[tmp]->ToString()))
+                    if (gcnew System::String((const char*)*(uint32_t*)((*(monsters + i))->monsterNamePointer)) == (targetBlack_Listbox->Items[tmp]->ToString()))
                     {
                         found = 1;
                         break;
@@ -924,11 +835,10 @@ namespace easyBot
                 }
                 if (!found)
                 {
-                    monsters_ComboBox->Items->Add(gcnew System::String((const char*)*(uint32_t*)((*(monsters + i))->monsterNamePointer)));
+                    targetBlack_Listbox->Items->Add(gcnew System::String((const char*)*(uint32_t*)((*(monsters + i))->monsterNamePointer)));
                 }
                 found = 0;
             }
-            monsters_ComboBox->SelectedIndex = 0;
             free(monsters);
         }
         //###################### StartWalker ######################
@@ -1014,9 +924,9 @@ namespace easyBot
                         entityListPointer = ReadPointer(0x003266D8, { 0xE8C, 0x4, 0x6A4, 0x0 });
                         monsterID = *((uint32_t*)(entityListPointer)+monster);
                         monsterName = (string)(const char*)*(uint32_t*)((*(uint32_t*)(monsterID + 0x1BC)) + 0x04);
-                        for (int monsterAttack = 0; monsterAttack < (int)monsters_ListBox->Items->Count; ++monsterAttack)
+                        for (int monsterAttack = 0; monsterAttack < (int)targetBlack_Listbox->Items->Count; ++monsterAttack)
                         {
-                            if (monsterName == msclr::interop::marshal_as<std::string>(monsters_ListBox->Items[monsterAttack]->ToString()))
+                            if (monsterName == msclr::interop::marshal_as<std::string>(targetBlack_Listbox->Items[monsterAttack]->ToString()))
                             {
                                 myX = (int)*(short int*)myPosPointer;
                                 myY = (int)*(short int*)(myPosPointer + 0x2);
@@ -1029,9 +939,9 @@ namespace easyBot
                                     entityX = (int)*(short int*)(monsterID + 0x0C);
                                     entityY = (int)*(short int*)(monsterID + 0x0E);
                                     atak = 1;
-                                    for (int tmp = 0; tmp < (int)skills_Listbox->Items->Count; ++tmp)
+                                    for (int tmp = 0; tmp < (int)targetSpell_Listbox->Items->Count; ++tmp)
                                     {
-                                        AttackMonster(monsterID, System::Convert::ToInt32(skills_Listbox->Items[tmp]->ToString()->Split(' ')[0]));
+                                        AttackMonster(monsterID, System::Convert::ToInt32(targetSpell_Listbox->Items[tmp]->ToString()->Split(' ')[0]));
                                         Sleep(150);
                                     }
                                     AttackMonster(monsterID, 0);
