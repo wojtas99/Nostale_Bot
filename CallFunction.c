@@ -2,24 +2,24 @@
 #include <iostream>
 
 const BYTE MOVE_PATTERN[] = { 0x55, 0x8B, 0xEC, 0x83, 0xC4, 0x00, 0x53, 0x56, 0x57, 0x66, 0x89, 0x00, 0x00, 0x89, 0x55 };
-const BYTE MOVE_THIS_PATTERN[] = { 0x50, 0x48, 0x00, 0x00, 0x40 };
+const BYTE MOVE_THIS_PATTERN[] = { 0xE0, 0x00, 0x00, 0x0E, 0x00, 0x4A };
 
 const BYTE ATTACK_PATTERN[] = { 0x6A, 0x00, 0x6A, 0x00, 0x6A, 0x00, 0xE8, 0x00, 0x00, 0x00, 0x00, 0xC3, 0x55};
-const BYTE ATTACK_THIS_PATTERN[] = { 0x90, 0x3E, 0x42, 0x00, 0x38 };
+const BYTE ATTACK_THIS_PATTERN[] = { 0xB0, 0x00, 0x8C, 0x00, 0x90 };
 
 const BYTE COLLECT_PATTERN[] = { 0x55, 0x8B, 0xEC, 0x6A, 0x00, 0x6A, 0x00, 0x6A, 0x00, 0x6A, 0x00, 0x53, 0x56, 0x8B, 0XD9, 0X8B, 0xF2, 0X33, 0XC0, 0X55, 0X68, 0X00, 0X00, 0X00, 0X00, 0X64, 0XFF, 0X00, 0X64, 0X89, 0X00, 0XA1 };
-const BYTE COLLECT_THIS_PATTERN[] = { 0x20, 0x4A, 0x00, 0x00, 0xFC};
+const BYTE COLLECT_THIS_PATTERN[] = { 0x58, 0x46, 0x8C, 0x00, 0xFC };
 
 const BYTE REST_PATTERN[] = { 0x55, 0x8B, 0xEC, 0xB9, 0x00, 0x00, 0x00, 0x00, 0x6A, 0x00, 0x6A, 0x00, 0x49, 0x75, 0x00, 0x51, 0x53, 0x56, 0x57, 0x33, 0xC0 };
 
 LPCSTR MOVE_MASK = "xxxxx?xxxxx??xx";
-LPCSTR MOVE_THIS_MASK = "xx??x";
+LPCSTR MOVE_THIS_MASK = "x??x?x";
 
 LPCSTR ATTACK_MASK = "x?x?x?x????xx";
-LPCSTR ATTACK_THIS_MASK = "xxxxx";
+LPCSTR ATTACK_THIS_MASK = "x?xxx";
 
 LPCSTR COLLECT_MASK = "xxxx?x?x?x?xxxxxxxxxx????xx?xx?x";
-LPCSTR COLLECT_THIS_MASK = "xx?xx";
+LPCSTR COLLECT_THIS_MASK = "xxxxx";
 
 LPCSTR REST_MASK = "xxxx????x?x?xx?xxxxxx";
 
@@ -54,6 +54,7 @@ void AttackMonster(uint32_t monster, short skill)
         MOV CX, skill
         MOV EDX, monster
         MOV EAX, [lpvAttackThis]
+        MOV EAX, [EAX]
         CALL lpvAttack
     }
 }
@@ -93,7 +94,7 @@ BOOL FindAddresses()
 
     lpvMove = FindPattern(MOVE_PATTERN, MOVE_MASK);
 
-    lpvMoveThis = FindPattern(MOVE_THIS_PATTERN, MOVE_THIS_MASK);
+    lpvMoveThis = (LPVOID)0x008C45F4;
 
     lpvCollect = FindPattern(COLLECT_PATTERN, COLLECT_MASK);
 

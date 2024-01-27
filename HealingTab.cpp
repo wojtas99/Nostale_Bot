@@ -153,10 +153,13 @@ void easyBot::main_form::InitializeHealingTab(void)
     myHealth_ProgressBar = gcnew System::Windows::Forms::ProgressBar();
     myHealth_ProgressBar->Location = Point(22, 43);
     myHealth_ProgressBar->Size = System::Drawing::Size(235, 23);
+    myHealth_ProgressBar->Minimum = 0;
+
 
     myMana_ProgressBar = gcnew System::Windows::Forms::ProgressBar();
     myMana_ProgressBar->Location = Point(22, 99);
     myMana_ProgressBar->Size = System::Drawing::Size(235, 23);
+    myMana_ProgressBar->Minimum = 0;
 
     //##################### Add to GroupBoxes ######################
     healing_GroupBox->Controls->Add(healing_Listbox);
@@ -199,14 +202,28 @@ void easyBot::main_form::InitializeHealingTab(void)
 void easyBot::main_form::startHealingBot_thread(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e)
 {
     string healName;
+
+    DWORD myPosPointer = ReadPointer(0x004C4B34, { 0xCC, 0xFC, 0x8, 0x2EC, 0xC });
+    DWORD myMana = ReadPointer(0x00328234, { 0x04, 0x30, 0x4, 0x28, 0x13C });
+    DWORD myMaxMana = myMana - 0x04;
+    DWORD myHp = myMana + 0xF0;
+    DWORD myMaxHP = myMana + 0xEC;
+    short int myX;
+    short int myY;
+
     while (!healingBot_Worker->CancellationPending)
     {
+        myHealth_ProgressBar->Maximum = (int)*(DWORD*)myMaxHP;
+        myHealth_ProgressBar->Value = (int)*(DWORD*)myHp;
+        myMana_ProgressBar->Maximum = (int)*(DWORD*)myMaxMana;
+        myMana_ProgressBar->Value = (int)*(DWORD*)myMana;
         for (int i = 0; i < (int)healing_Listbox->Items->Count; ++i)
         {
+            myX = (short int)*(short int*)myPosPointer;
+            myY = (short int)*(short int*)(myPosPointer + 0x02);
+            currentPos_Label->Text = "Current Position" + System::Environment::NewLine + "X = " + myX + " | Y = " + myY;
             if (System::Convert::ToString(healing_Listbox->Items[i]->ToString()->Split('%')[0]) == "MP")
             {
-                DWORD myMana = ReadPointer(0X004C482C, { 0xC0, 0xF48, 0xA74, 0xC04, 0x13C });
-                DWORD myMaxMana = ReadPointer(0X004C482C, { 0xC0, 0xF48, 0xA74, 0xC04, 0x138 });
                 if ((int)*(DWORD*)myMana <= ((int)*(DWORD*)myMaxMana * System::Convert::ToInt32(healing_Listbox->Items[i]->ToString()->Split('%')[1]) * 0.01) &&
                     (int)*(DWORD*)myMana >= ((int)*(DWORD*)myMaxMana * System::Convert::ToInt32(healing_Listbox->Items[i]->ToString()->Split('%')[2]->Substring(1)) * 0.01))
                 {
@@ -217,8 +234,6 @@ void easyBot::main_form::startHealingBot_thread(Object^ sender, System::Componen
             }
             else
             {
-                DWORD myHp = ReadPointer(0X004C482C, { 0xC0, 0xF48, 0xA74, 0xC04, 0x22C });
-                DWORD myMaxHP = ReadPointer(0X004C482C, { 0xC0, 0xF48, 0xA74, 0xC04, 0x228 });
                 if ((int)*(DWORD*)myHp <= ((int)*(DWORD*)myMaxHP * System::Convert::ToInt32(healing_Listbox->Items[i]->ToString()->Split('%')[1]) * 0.01) &&
                     (int)*(DWORD*)myHp >= ((int)*(DWORD*)myMaxHP * System::Convert::ToInt32(healing_Listbox->Items[i]->ToString()->Split('%')[2]->Substring(1)) * 0.01))
                 {

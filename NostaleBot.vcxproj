@@ -23,6 +23,7 @@
     <ClCompile Include="dllmain.c" />
     <ClCompile Include="gui.cpp" />
     <ClCompile Include="HealingTab.cpp" />
+    <ClCompile Include="LootTab.cpp" />
     <ClCompile Include="MainTab.cpp" />
     <ClCompile Include="memscan.c" />
     <ClCompile Include="TargetTab.cpp" />
@@ -32,7 +33,6 @@
     <ClInclude Include="CallFunction.h" />
     <ClInclude Include="gui.h" />
     <ClInclude Include="memscan.h" />
-    <ClInclude Include="Nostale_Entity.h" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />

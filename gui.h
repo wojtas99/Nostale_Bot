@@ -1,9 +1,8 @@
 #ifndef GUI_H
 #define GUI_H
 #include "memscan.h"
-#include "Nostale_Entity.h"
 #include "CallFunction.h"
-#include <msclr/marshal_cppstd.h> // Library to convert String^ to string
+#include <msclr/marshal_cppstd.h>
 #include <fstream>
 #include <tchar.h>
 using namespace std;
@@ -20,10 +19,6 @@ namespace easyBot
     public:
         main_form(void)
         {
-            InitializeMainTab();
-            InitializeTargetTab();
-            InitializeHealingTab();
-            InitializeWalkerTab();
         }
         main_form(void(lpMoveTo)(uint32_t), void(lpAttackMonster)(uint32_t, short), void(lpRest)(void), void(lpCollect)(uint32_t))
         {
@@ -31,6 +26,7 @@ namespace easyBot
             InitializeTargetTab();
             InitializeHealingTab();
             InitializeWalkerTab();
+            InitializeLootTab();
             this->Width = 500;
             this->Height = 400;
             this->Text = "KrawczorBot";
@@ -51,7 +47,7 @@ namespace easyBot
     private:
         // Global Variables
         unsigned int waypoint = 0;
-        bool atak = 0;
+        unsigned int state = 0; // 0 - Attack, 1 - Loot, 2 - Walk
         // Functions
         void(*attackMonster)(uint32_t, short);
         void(*moveTo)(uint32_t);
@@ -61,6 +57,7 @@ namespace easyBot
         void InitializeTargetTab(void);
         void InitializeHealingTab(void);
         void InitializeWalkerTab(void);
+        void InitializeLootTab(void);
         void ListFilesInFolder(const std::wstring& folderPath);
         void walkerActions_ComboBox_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e);
         void startBot(Object^ sender, EventArgs^ e);
@@ -69,15 +66,27 @@ namespace easyBot
         void addWaypoint(System::Object^ sender, System::EventArgs^ e);
         void addSpell(System::Object^ sender, System::EventArgs^ e);
         void refreshMonsters(System::Object^ sender, System::EventArgs^ e);
-        void startWalkerBot_thread(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e);
         void startTargetBot_thread(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e);
+        void startLootBot_thread(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e);
+        void startWalkerBot_thread(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e);
         void startHealingBot_thread(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e);
         void addHealingItem(System::Object^ sender, System::EventArgs^ e);
+        void addMonsterToBlackList(System::Object^ sender, System::EventArgs^ e);
+        void addMonsterToWhiteList(System::Object^ sender, System::EventArgs^ e);
+        void checkBox_CheckedChanged(System::Object^ sender, System::EventArgs^ e);
+        void refreshItems(System::Object^ sender, System::EventArgs^ e);
+        void addItem(System::Object^ sender, System::EventArgs^ e);
+        void main_form_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e);
+        void saveLoot(System::Object^ sender, System::EventArgs^ e);
+        void loadLoot(System::Object^ sender, System::EventArgs^ e);
+        void addItemToWhiteList(System::Object^ sender, System::EventArgs^ e);
+        void addItemToBlackList(System::Object^ sender, System::EventArgs^ e);
         // Variables
         System::ComponentModel::Container^ components;
         System::Windows::Forms::TabControl^ tabView;
         System::Windows::Forms::TabPage^ mainTab;
         System::ComponentModel::BackgroundWorker^ targetBot_Worker;
+        System::ComponentModel::BackgroundWorker^ lootBot_Worker;
         System::ComponentModel::BackgroundWorker^ walkerBot_Worker;
         System::ComponentModel::BackgroundWorker^ healingBot_Worker;
         System::Windows::Forms::Button^ startBot_Button;
@@ -150,14 +159,28 @@ namespace easyBot
         System::Windows::Forms::Label^ myMana_Label;
         System::Windows::Forms::ProgressBar^ myHealth_ProgressBar;
         System::Windows::Forms::ProgressBar^ myMana_ProgressBar;
-        //###################### Functions       ######################
-        //###################### Close Main_Form ######################
-        System::Void main_form_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e)
-        {
-            targetBot_Worker->CancelAsync();
-            healingBot_Worker->CancelAsync();
-            walkerBot_Worker->CancelAsync();
-        }      
+        // Loot Tab
+        System::Windows::Forms::TabPage^ lootTab;
+        System::Windows::Forms::GroupBox^ lootWhite_GroupBox;
+        System::Windows::Forms::GroupBox^ lootBlack_GroupBox;
+        System::Windows::Forms::GroupBox^ addLoot_GroupBox;
+        System::Windows::Forms::GroupBox^ saveLoot_GroupBox;
+        System::Windows::Forms::ListBox^ lootWhite_Listbox;
+        System::Windows::Forms::ListBox^ lootBlack_Listbox;
+        System::Windows::Forms::ListBox^ saveLoot_Listbox;
+        System::Windows::Forms::Button^ addLootItem_Button;
+        System::Windows::Forms::Button^ refreshLoot_Button;
+        System::Windows::Forms::Button^ saveLoot_Button;
+        System::Windows::Forms::Button^ loadLoot_Button;
+        System::Windows::Forms::TextBox^ addLootItem_TextBox;
+        System::Windows::Forms::TextBox^ lootRadius_TextBox;
+        System::Windows::Forms::TextBox^ saveLoot_TextBox;
+        System::Windows::Forms::Label^ itemName_Label;
+        System::Windows::Forms::Label^ lootRadius_Label;
+        System::Windows::Forms::Label^ saveLoot_Label;
+        System::Windows::Forms::CheckBox^ lootWhite_CheckBox;
+        System::Windows::Forms::CheckBox^ lootBlack_CheckBox;
+        System::Windows::Forms::CheckBox^ lootEverything_CheckBox;
     };
 }
 #endif // GUI_H

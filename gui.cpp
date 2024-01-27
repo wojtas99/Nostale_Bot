@@ -1,12 +1,13 @@
 #include <string>
 #include "CallFunction.h"
-#include "Nostale_Entity.h"
 #include "gui.h"
 int GuiMain()
 {
+	/*
 	FILE* f;
 	AllocConsole();
 	freopen_s(&f, "CONOUT$", "w", stdout);
+	*/
 	StartBot();
 	easyBot::Application::EnableVisualStyles();
 	easyBot::Application::SetCompatibleTextRenderingDefault(false);

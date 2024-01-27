@@ -39,6 +39,9 @@
     <ClCompile Include="MainTab.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LootTab.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CallFunction.h">
@@ -48,9 +51,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="memscan.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Nostale_Entity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

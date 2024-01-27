@@ -34,6 +34,7 @@ void easyBot::main_form::InitializeWalkerTab(void)
     walkerActions_ComboBox->Items->Add("Lure");
     walkerActions_ComboBox->Items->Add("Use Skill");
     walkerActions_ComboBox->Items->Add("Use Item");
+    walkerActions_ComboBox->SelectedIndex = 1;
     walkerActions_ComboBox->SelectedIndexChanged += gcnew System::EventHandler(this, &main_form::walkerActions_ComboBox_SelectedIndexChanged);
 
     //######################     ListBoxes     ######################
@@ -83,7 +84,7 @@ void easyBot::main_form::InitializeWalkerTab(void)
     currentPos_Label = gcnew System::Windows::Forms::Label();
     currentPos_Label->Location = Point(10, 20);
     currentPos_Label->Font = gcnew System::Drawing::Font("Microsoft Sans Serif", 8.25, FontStyle::Regular);
-    currentPos_Label->Text = "Current Position" + System::Environment::NewLine + "X = 100 | Y = 200";
+    currentPos_Label->Text = "Current Position" + System::Environment::NewLine + "X = 0 | Y = 0";
     currentPos_Label->Height = 40;
 
     walkerStatus_Label = gcnew System::Windows::Forms::Label();
@@ -169,9 +170,9 @@ void easyBot::main_form::loadWalker(System::Object^ sender, System::EventArgs^ e
     {
         string myText;
         string fileName = msclr::interop::marshal_as<string>(System::Convert::ToString(saveWalker_TextBox->Text->ToString()));
-        ifstream saveWpt("Waypoints/" + fileName);
+        ifstream save("Waypoints/" + fileName);
         walker_Listbox->Items->Clear();
-        while (getline(saveWpt, myText))
+        while (getline(save, myText))
         {
             walker_Listbox->Items->Add(msclr::interop::marshal_as<String^>(myText));
         }
@@ -181,9 +182,9 @@ void easyBot::main_form::loadWalker(System::Object^ sender, System::EventArgs^ e
     {
         string myText;
         string fileName = msclr::interop::marshal_as<string>(System::Convert::ToString(saveWalker_Listbox->Items[saveWalker_Listbox->SelectedIndex]->ToString()));
-        ifstream saveWpt("Waypoints/" + fileName);
+        ifstream save("Waypoints/" + fileName);
         walker_Listbox->Items->Clear();
-        while (getline(saveWpt, myText))
+        while (getline(save, myText))
         {
             walker_Listbox->Items->Add(msclr::interop::marshal_as<String^>(myText));
         }
@@ -192,7 +193,7 @@ void easyBot::main_form::loadWalker(System::Object^ sender, System::EventArgs^ e
 }
 void easyBot::main_form::addWaypoint(System::Object^ sender, System::EventArgs^ e)
 {
-    DWORD myPosPointer = ReadPointer(0x004C4E4C, { 0x560, 0x1C, 0x10, 0xB60, 0x0C });
+    DWORD myPosPointer = ReadPointer(0x004C4B34, { 0xCC, 0xFC, 0x8, 0x2EC, 0xC });
     short int myX = (short int)*(short int*)myPosPointer;
     short int myY = (short int)*(short int*)(myPosPointer + 0x02);
     if (*(uint32_t*)myPosPointer != 0)
@@ -201,54 +202,52 @@ void easyBot::main_form::addWaypoint(System::Object^ sender, System::EventArgs^ 
 //###################### StartWalker ######################
 void easyBot::main_form::startWalkerBot_thread(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e)
 {
-    DWORD myPosPointer = ReadPointer(0x004C4E4C, { 0x560, 0x1C, 0x10, 0xB60, 0x0C });
+    DWORD myPosPointer = ReadPointer(0x004C4B34, { 0xCC, 0xFC, 0x8, 0x2EC, 0xC });
     double timer = 0;
     short int myX;
     short int myY;
     short int mapY;
     short int mapX;
-    walker_Listbox->SetSelected(waypoint, TRUE);
-    mapX = System::Convert::ToInt32(walker_Listbox->Items[waypoint]->ToString()->Split('Y')[0]->Substring(3));
-    mapY = System::Convert::ToInt32(walker_Listbox->Items[waypoint]->ToString()->Split('Y')[1]->Substring(2));
-    MoveTo(mapY * 65536 + mapX);
     while (!walkerBot_Worker->CancellationPending)
     {
-        while (!atak && !walkerBot_Worker->CancellationPending)
+        if (state == 2)
         {
-            walker_Listbox->SetSelected(waypoint, TRUE);
-            mapX = System::Convert::ToInt32(walker_Listbox->Items[waypoint]->ToString()->Split('Y')[0]->Substring(3));
-            mapY = System::Convert::ToInt32(walker_Listbox->Items[waypoint]->ToString()->Split('Y')[1]->Substring(2));
-            myX = (short int)*(short int*)myPosPointer;
-            myY = (short int)*(short int*)(myPosPointer + 0x02);
-            Sleep(100);
-            MoveTo(mapY * 65536 + mapX);
-            MoveTo(mapY * 65536 + mapX);
-            MoveTo(mapY * 65536 + mapX);
-            timer = 0;
-            while (myX != mapX && myY != mapY && !atak && !walkerBot_Worker->CancellationPending)
+            if ((int)walker_Listbox->Items->Count > 0)
             {
-                myX = (short int)*(short int*)myPosPointer;
-                myY = (short int)*(short int*)(myPosPointer + 0x02);
-                if (timer > 2)
+                walker_Listbox->SetSelected(waypoint, TRUE);
+                mapX = System::Convert::ToInt32(walker_Listbox->Items[waypoint]->ToString()->Split('Y')[0]->Substring(3));
+                mapY = System::Convert::ToInt32(walker_Listbox->Items[waypoint]->ToString()->Split('Y')[1]->Substring(2));
+                myX = *(short int*)myPosPointer;
+                myY = *(short int*)(myPosPointer + 0x02);
+                Sleep(500);
+                MoveTo(mapY * 65536 + mapX);
+                timer = 0;
+                while (myX != mapX && myY != mapY && !walkerBot_Worker->CancellationPending)
                 {
-                    MoveTo(mapY * 65536 + mapX);
-                    timer = 0;
+                    myX = *(short int*)myPosPointer;
+                    myY = *(short int*)(myPosPointer + 0x02);
+                    if (timer > 1)
+                    {
+                        MoveTo(mapY * 65536 + mapX);
+                        timer = 0;
+                    }
+                    timer += 0.05;
+                    Sleep(50);
                 }
-                timer += 0.05;
-                Sleep(50);
-            }
-            if (myX == mapX && myY == mapY && !atak)
-            {
-                if (waypoint < (unsigned int)walker_Listbox->Items->Count - 1)
+                if (myX == mapX && myY == mapY)
                 {
-                    ++waypoint;
-                }
-                else
-                {
-                    waypoint = 0;
+                    if (waypoint < (unsigned int)walker_Listbox->Items->Count - 1)
+                    {
+                        ++waypoint;
+                    }
+                    else
+                    {
+                        waypoint = 0;
+                    }
+                    state = 0;
                 }
             }
         }
-        Sleep(10);
+        Sleep(50);
     }
 }

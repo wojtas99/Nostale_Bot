@@ -1,4 +1,5 @@
 ﻿  HealingTab.cpp
+  LootTab.cpp
   MainTab.cpp
   TargetTab.cpp
   WalkerTab.cpp
