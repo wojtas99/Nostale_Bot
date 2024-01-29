@@ -103,16 +103,19 @@ void easyBot::main_form::InitializeLootTab(void)
     lootWhite_CheckBox->Location = Point(166, 102);
     lootWhite_CheckBox->Text = "Loot White List";
     lootWhite_CheckBox->Width = 100;
+    lootWhite_CheckBox->CheckedChanged += gcnew EventHandler(this, &main_form::checkBoxLoot_CheckedChanged);
 
     lootBlack_CheckBox = gcnew System::Windows::Forms::CheckBox();
     lootBlack_CheckBox->Location = Point(166, 79);
     lootBlack_CheckBox->Text = "Loot Black List";
     lootBlack_CheckBox->Width = 100;
+    lootBlack_CheckBox->CheckedChanged += gcnew EventHandler(this, &main_form::checkBoxLoot_CheckedChanged);
 
     lootEverything_CheckBox = gcnew System::Windows::Forms::CheckBox();
     lootEverything_CheckBox->Location = Point(166, 125);
     lootEverything_CheckBox->Text = "Loot Everything";
     lootEverything_CheckBox->Width = 100;
+    lootEverything_CheckBox->CheckedChanged += gcnew EventHandler(this, &main_form::checkBoxLoot_CheckedChanged);
 
     //##################### Add to GroupBoxes ######################
     lootWhite_GroupBox->Controls->Add(lootWhite_Listbox);
@@ -157,6 +160,14 @@ void easyBot::main_form::refreshItems(System::Object^ sender, System::EventArgs^
         for (int tmp = 0; tmp < (int)lootBlack_Listbox->Items->Count; ++tmp)
         {
             if (gcnew System::String((const char*)itemsGround) == lootBlack_Listbox->Items[tmp]->ToString())
+            {
+                found = 1;
+                break;
+            }
+        }
+        for (int tmp = 0; tmp < (int)lootWhite_Listbox->Items->Count; ++tmp)
+        {
+            if (gcnew System::String((const char*)itemsGround) == lootWhite_Listbox->Items[tmp]->ToString())
             {
                 found = 1;
                 break;
@@ -297,6 +308,36 @@ void easyBot::main_form::addItemToBlackList(System::Object^ sender, System::Even
         found = 0;
     }
 }
+void easyBot::main_form::checkBoxLoot_CheckedChanged(System::Object^ sender, System::EventArgs^ e)
+{
+    if (lootWhite_CheckBox->Checked)
+    {
+        lootBlack_CheckBox->Checked = false;
+        lootBlack_CheckBox->Enabled = false;
+        lootEverything_CheckBox->Checked = false;
+        lootEverything_CheckBox->Enabled = false;
+    }
+    else if (lootBlack_CheckBox->Checked)
+    {
+        lootWhite_CheckBox->Checked = false;
+        lootWhite_CheckBox->Enabled = false;
+        lootEverything_CheckBox->Checked = false;
+        lootEverything_CheckBox->Enabled = false;
+    }
+    else if (lootEverything_CheckBox->Checked)
+    {
+        lootWhite_CheckBox->Checked = false;
+        lootWhite_CheckBox->Enabled = false;
+        lootBlack_CheckBox->Checked = false;
+        lootBlack_CheckBox->Enabled = false;
+    }
+    else
+    {
+        lootWhite_CheckBox->Enabled = true;
+        lootBlack_CheckBox->Enabled = true;
+        lootEverything_CheckBox->Enabled = true;
+    }
+}
 
 void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e)
 {
@@ -347,7 +388,7 @@ void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentMo
                                 timer = 0;
                             }
                         }
-                        Sleep(500);
+                        Sleep(200);
                         Collect(itemsPointer);
                         Sleep(100);
                         timer = 0;
@@ -386,9 +427,10 @@ void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentMo
                                         timer = 0;
                                     }
                                 }
-                                Sleep(500);
+                                Sleep(200);
                                 Collect(itemsPointer);
                                 Sleep(100);
+                                timer = 0;
                                 item = 0;
                             }
                         }
@@ -426,9 +468,10 @@ void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentMo
                                         timer = 0;
                                     }
                                 }
-                                Sleep(500);
+                                Sleep(200);
                                 Collect(itemsPointer);
                                 Sleep(100);
+                                timer = 0;
                                 item = 0;
                             }
                         }

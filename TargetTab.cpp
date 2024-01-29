@@ -47,7 +47,7 @@ void easyBot::main_form::InitializeTargetTab(void)
     targetBlack_Listbox->DoubleClick += gcnew EventHandler(this, &main_form::addMonsterToWhiteList);
 
     targetSpell_Listbox = gcnew System::Windows::Forms::ListBox();
-    targetSpell_Listbox->Size = System::Drawing::Size(104, 121);
+    targetSpell_Listbox->Size = System::Drawing::Size(104, 81);
     targetSpell_Listbox->Location = Point(10, 20);
 
     saveTarget_Listbox = gcnew System::Windows::Forms::ListBox();
@@ -71,18 +71,28 @@ void easyBot::main_form::InitializeTargetTab(void)
     saveTarget_Button->Location = Point(10, 120);
     saveTarget_Button->Size = System::Drawing::Size(70, 25);
     saveTarget_Button->Text = "Save";
+    saveTarget_Button->Click += gcnew EventHandler(this, &main_form::saveTarget);
 
     loadTarget_Button = gcnew System::Windows::Forms::Button();
     loadTarget_Button->Location = Point(90, 120);
     loadTarget_Button->Size = System::Drawing::Size(70, 25);
     loadTarget_Button->Text = "Load";
+    loadTarget_Button->Click += gcnew EventHandler(this, &main_form::loadTarget);
 
     //######################   Text Boxes  ########################
     saveTarget_TextBox = gcnew System::Windows::Forms::TextBox();
     saveTarget_TextBox->Location = Point(52, 94);
     saveTarget_TextBox->Size = System::Drawing::Size(108, 20);
 
+    attackRadius_TextBox = gcnew System::Windows::Forms::TextBox();
+    attackRadius_TextBox->Location = Point(10, 121);
+
     //######################   Labels  ########################
+    attackRadiu_Label = gcnew System::Windows::Forms::Label();
+    attackRadiu_Label->Location = Point(10, 101);
+    attackRadiu_Label->Text = "Attack Range";
+    attackRadiu_Label->Font = gcnew System::Drawing::Font("Microsoft Sans Serif", 10, FontStyle::Regular);
+
     saveTarget_Label = gcnew System::Windows::Forms::Label();
     saveTarget_Label->Location = Point(7, 94);
     saveTarget_Label->Text = "Name";
@@ -102,6 +112,12 @@ void easyBot::main_form::InitializeTargetTab(void)
     attackBlack_CheckBox->Width = 110;
     attackBlack_CheckBox->CheckedChanged += gcnew EventHandler(this, &main_form::checkBox_CheckedChanged);
 
+    attackEverything_CheckBox = gcnew System::Windows::Forms::CheckBox();
+    attackEverything_CheckBox->Location = Point(120, 125);
+    attackEverything_CheckBox->Text = "Attack Everything";
+    attackEverything_CheckBox->Width = 110;
+    attackEverything_CheckBox->CheckedChanged += gcnew EventHandler(this, &main_form::checkBox_CheckedChanged);
+
     //##################### Add to GroupBoxes ######################
     targetWhite_GroupBox->Controls->Add(targetWhite_Listbox);
 
@@ -113,6 +129,10 @@ void easyBot::main_form::InitializeTargetTab(void)
     targetSpell_GroupBox->Controls->Add(refreshTarget_Button);
     targetSpell_GroupBox->Controls->Add(attackWhite_CheckBox);
     targetSpell_GroupBox->Controls->Add(attackBlack_CheckBox);
+    targetSpell_GroupBox->Controls->Add(attackEverything_CheckBox);
+    targetSpell_GroupBox->Controls->Add(attackRadius_TextBox);
+    targetSpell_GroupBox->Controls->Add(attackRadiu_Label);
+    
 
     saveTarget_GroupBox->Controls->Add(saveTarget_Listbox);
     saveTarget_GroupBox->Controls->Add(saveTarget_Button);
@@ -132,16 +152,28 @@ void easyBot::main_form::checkBox_CheckedChanged(System::Object^ sender, System:
     {
         attackBlack_CheckBox->Checked = false;
         attackBlack_CheckBox->Enabled = false;
+        attackEverything_CheckBox->Checked = false;
+        attackEverything_CheckBox->Enabled = false;
     }
     else if (attackBlack_CheckBox->Checked)
     {
         attackWhite_CheckBox->Checked = false;
         attackWhite_CheckBox->Enabled = false;
+        attackEverything_CheckBox->Checked = false;
+        attackEverything_CheckBox->Enabled = false;
+    }
+    else if (attackEverything_CheckBox->Checked)
+    {
+        attackWhite_CheckBox->Checked = false;
+        attackWhite_CheckBox->Enabled = false;
+        attackBlack_CheckBox->Checked = false;
+        attackBlack_CheckBox->Enabled = false;
     }
     else
     {
         attackWhite_CheckBox->Enabled = true;
         attackBlack_CheckBox->Enabled = true;
+        attackEverything_CheckBox->Enabled = true;
     }
 }
 void easyBot::main_form::addSpell(System::Object^ sender, System::EventArgs^ e)
@@ -155,7 +187,7 @@ void easyBot::main_form::addMonsterToWhiteList(System::Object^ sender, System::E
     bool found = 0;
     if (targetBlack_Listbox->SelectedItem != nullptr)
     {
-        for (int i = 0; i < (int)targetBlack_Listbox->Items->Count; ++i)
+        for (int i = 0; i < (int)targetWhite_Listbox->Items->Count; ++i)
         {
             if (targetBlack_Listbox->SelectedItem->ToString() == targetWhite_Listbox->Items[i]->ToString())
             {
@@ -190,8 +222,82 @@ void easyBot::main_form::addMonsterToBlackList(System::Object^ sender, System::E
         found = 0;
     }
 }
+void easyBot::main_form::saveTarget(System::Object^ sender, System::EventArgs^ e)
+{
+    if (saveTarget_TextBox->Text != "")
+    {
+        string fileName = msclr::interop::marshal_as<string>(System::Convert::ToString(saveTarget_TextBox->Text->ToString()));
+        ofstream save("Target/" + fileName);
+        for (int i = 0; i < (int)targetBlack_Listbox->Items->Count; ++i)
+        {
 
+            save << msclr::interop::marshal_as<string>(targetBlack_Listbox->Items[i]->ToString()) << endl;
+        }
+        if ((int)targetWhite_Listbox->Items->Count > 0)
+        {
+            save << "W" << endl;
+        }
+        for (int i = 0; i < (int)targetWhite_Listbox->Items->Count; ++i)
+        {
 
+            save << msclr::interop::marshal_as<string>(targetWhite_Listbox->Items[i]->ToString()) << endl;
+        }
+        saveTarget_Listbox->Items->Add(saveTarget_TextBox->Text);
+        save.close();
+    }
+}
+void easyBot::main_form::loadTarget(System::Object^ sender, System::EventArgs^ e)
+{
+    bool addToBlack = 0;
+    if (saveTarget_TextBox->Text != "")
+    {
+        string myText;
+        string fileName = msclr::interop::marshal_as<string>(System::Convert::ToString(saveTarget_TextBox->Text->ToString()));
+        ifstream save("Target/" + fileName);
+        targetWhite_Listbox->Items->Clear();
+        targetWhite_Listbox->Items->Clear();
+        while (getline(save, myText))
+        {
+            if (myText == "W")
+            {
+                addToBlack = 1;
+                continue;
+            }
+            if (!addToBlack)
+            {
+                targetBlack_Listbox->Items->Add(msclr::interop::marshal_as<String^>(myText));
+            }
+            else
+            {
+                targetWhite_Listbox->Items->Add(msclr::interop::marshal_as<String^>(myText));
+            }
+        }
+    }
+    else if (saveTarget_Listbox->SelectedIndex != -1)
+    {
+        string myText;
+        string fileName = msclr::interop::marshal_as<string>(System::Convert::ToString(saveTarget_Listbox->Items[saveTarget_Listbox->SelectedIndex]->ToString()));
+        ifstream save("Target/" + fileName);
+        targetWhite_Listbox->Items->Clear();
+        targetWhite_Listbox->Items->Clear();
+        while (getline(save, myText))
+        {
+            if (myText == "W")
+            {
+                addToBlack = 1;
+                continue;
+            }
+            if (!addToBlack)
+            {
+                targetBlack_Listbox->Items->Add(msclr::interop::marshal_as<String^>(myText));
+            }
+            else
+            {
+                targetWhite_Listbox->Items->Add(msclr::interop::marshal_as<String^>(myText));
+            }
+        }
+    }
+}
 void easyBot::main_form::refreshMonsters(System::Object^ sender, System::EventArgs^ e)
 {
     bool found = 0;
@@ -208,6 +314,14 @@ void easyBot::main_form::refreshMonsters(System::Object^ sender, System::EventAr
                 break;
             }
         }
+        for (int tmp = 0; tmp < (int)targetWhite_Listbox->Items->Count; ++tmp)
+        {
+            if (gcnew System::String((const char*)monster) == (targetWhite_Listbox->Items[tmp]->ToString()))
+            {
+                found = 1;
+                break;
+            }
+        }
         if (!found)
         {
             targetBlack_Listbox->Items->Add(gcnew System::String((const char*)monster));
@@ -218,6 +332,11 @@ void easyBot::main_form::refreshMonsters(System::Object^ sender, System::EventAr
 
 void easyBot::main_form::startTargetBot_thread(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e)
 {
+    int attackRadius = System::Convert::ToInt32(attackRadius_TextBox->Text->ToString());
+    if (attackRadius_TextBox->Text == "")
+    {
+        attackRadius = 8;
+    }
     string monsterName;
 
     DWORD myPosPointer = ReadPointer(0x004C4B34, { 0xCC, 0xFC, 0x8, 0x2EC, 0xC });
@@ -250,7 +369,7 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
                             myY = *(short int*)(myPosPointer + 0x2);
                             entityX = *(short int*)(monsterStatus + 0x0C);
                             entityY = *(short int*)(monsterStatus + 0x0E);
-                            while (abs(myX - entityX) < 9 && abs(myY - entityY) < 9 && !targetBot_Worker->CancellationPending && *(uint32_t*)(monsterStatus + 0x08) != 0xFFFFFFFF)
+                            while (abs(myX - entityX) < attackRadius && abs(myY - entityY) < attackRadius && !targetBot_Worker->CancellationPending && *(uint32_t*)(monsterStatus + 0x08) != 0xFFFFFFFF)
                             {
                                 i = 0;
                                 myX = *(short int*)myPosPointer;
@@ -278,7 +397,7 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
                             myY = *(short int*)(myPosPointer + 0x2);
                             entityX = *(short int*)(monsterStatus + 0x0C);
                             entityY = *(short int*)(monsterStatus + 0x0E);
-                            while (abs(myX - entityX) < 9 && abs(myY - entityY) < 9 && !targetBot_Worker->CancellationPending && *(uint32_t*)(monsterStatus + 0x08) != 0xFFFFFFFF)
+                            while (abs(myX - entityX) < attackRadius && abs(myY - entityY) < attackRadius && !targetBot_Worker->CancellationPending && *(uint32_t*)(monsterStatus + 0x08) != 0xFFFFFFFF)
                             {
                                 i = 0;
                                 myX = *(short int*)myPosPointer;
@@ -294,6 +413,28 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
                                 Sleep(150);
                             }
                         }
+                    }
+                }
+                if (attackEverything_CheckBox->Checked)
+                {
+                    myX = *(short int*)myPosPointer;
+                    myY = *(short int*)(myPosPointer + 0x2);
+                    entityX = *(short int*)(monsterStatus + 0x0C);
+                    entityY = *(short int*)(monsterStatus + 0x0E);
+                    while (abs(myX - entityX) < attackRadius && abs(myY - entityY) < attackRadius && !targetBot_Worker->CancellationPending && *(uint32_t*)(monsterStatus + 0x08) != 0xFFFFFFFF)
+                    {
+                        i = 0;
+                        myX = *(short int*)myPosPointer;
+                        myY = *(short int*)(myPosPointer + 0x2);
+                        entityX = *(short int*)(monsterStatus + 0x0C);
+                        entityY = *(short int*)(monsterStatus + 0x0E);
+                        for (int spell = 0; spell < (int)targetSpell_Listbox->Items->Count; ++spell)
+                        {
+                            AttackMonster(monsterStatus, System::Convert::ToInt32(targetSpell_Listbox->Items[spell]->ToString()->Split(' ')[0]));
+                            Sleep(150);
+                        }
+                        AttackMonster(monsterStatus, 0);
+                        Sleep(150);
                     }
                 }
             }        

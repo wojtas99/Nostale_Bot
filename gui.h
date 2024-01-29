@@ -27,6 +27,9 @@ namespace easyBot
             InitializeHealingTab();
             InitializeWalkerTab();
             InitializeLootTab();
+            ListFilesInFolder(L"Waypoints");
+            ListFilesInFolder(L"Target");
+            ListFilesInFolder(L"Loot");
             this->Width = 500;
             this->Height = 400;
             this->Text = "KrawczorBot";
@@ -59,7 +62,6 @@ namespace easyBot
         void InitializeWalkerTab(void);
         void InitializeLootTab(void);
         void ListFilesInFolder(const std::wstring& folderPath);
-        void walkerActions_ComboBox_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e);
         void startBot(Object^ sender, EventArgs^ e);
         void saveWalker(System::Object^ sender, System::EventArgs^ e);
         void loadWalker(System::Object^ sender, System::EventArgs^ e);
@@ -81,6 +83,9 @@ namespace easyBot
         void loadLoot(System::Object^ sender, System::EventArgs^ e);
         void addItemToWhiteList(System::Object^ sender, System::EventArgs^ e);
         void addItemToBlackList(System::Object^ sender, System::EventArgs^ e);
+        void checkBoxLoot_CheckedChanged(System::Object^ sender, System::EventArgs^ e);
+        void saveTarget(System::Object^ sender, System::EventArgs^ e);
+        void loadTarget(System::Object^ sender, System::EventArgs^ e);
         // Variables
         System::ComponentModel::Container^ components;
         System::Windows::Forms::TabControl^ tabView;
@@ -105,10 +110,13 @@ namespace easyBot
         System::Windows::Forms::Button^ addSpell_Button;
         System::Windows::Forms::Button^ loadTarget_Button;
         System::Windows::Forms::Button^ saveTarget_Button;
+        System::Windows::Forms::TextBox^ attackRadius_TextBox;
         System::Windows::Forms::TextBox^ saveTarget_TextBox;
         System::Windows::Forms::Label^ saveTarget_Label;
+        System::Windows::Forms::Label^ attackRadiu_Label;
         System::Windows::Forms::CheckBox^ attackWhite_CheckBox;
         System::Windows::Forms::CheckBox^ attackBlack_CheckBox;
+        System::Windows::Forms::CheckBox^ attackEverything_CheckBox;
         // Walker Tab
         System::Windows::Forms::TabPage^ waypointTab;
         System::Windows::Forms::GroupBox^ walker_GroupBox;

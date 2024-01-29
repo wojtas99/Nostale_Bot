@@ -30,12 +30,7 @@ void easyBot::main_form::InitializeWalkerTab(void)
     walkerActions_ComboBox->Size = System::Drawing::Size(87, 21);
     walkerActions_ComboBox->DropDownStyle = ComboBoxStyle::DropDownList;
     walkerActions_ComboBox->Items->Add("Walk");
-    walkerActions_ComboBox->Items->Add("Wait");
-    walkerActions_ComboBox->Items->Add("Lure");
-    walkerActions_ComboBox->Items->Add("Use Skill");
-    walkerActions_ComboBox->Items->Add("Use Item");
-    walkerActions_ComboBox->SelectedIndex = 1;
-    walkerActions_ComboBox->SelectedIndexChanged += gcnew System::EventHandler(this, &main_form::walkerActions_ComboBox_SelectedIndexChanged);
+    walkerActions_ComboBox->SelectedIndex = 0;
 
     //######################     ListBoxes     ######################
     walker_Listbox = gcnew System::Windows::Forms::ListBox();
@@ -100,8 +95,7 @@ void easyBot::main_form::InitializeWalkerTab(void)
     targetStatus_Label->Height = 40;
 
     //##################### Add to GroupBoxes ######################
-    walker_GroupBox->Controls->Add(walker_Listbox);
-    ListFilesInFolder(L"Waypoints");
+    walker_GroupBox->Controls->Add(walker_Listbox);   
     addWaypoint_GroupBox->Controls->Add(addWaypoint_Button);
     addWaypoint_GroupBox->Controls->Add(walkerActions_ComboBox);
     addWaypoint_GroupBox->Controls->Add(walkerAction_TextBox);
@@ -121,34 +115,6 @@ void easyBot::main_form::InitializeWalkerTab(void)
     waypointTab->Controls->Add(addWaypoint_GroupBox);
     waypointTab->Controls->Add(saveWalker_GroupBox);
     waypointTab->Controls->Add(currentStatus_GroupBox);
-}
-
-void easyBot::main_form::ListFilesInFolder(const std::wstring& folderPath) {
-    WIN32_FIND_DATA findFileData;
-    HANDLE hFind = FindFirstFile((folderPath + L"\\*").c_str(), &findFileData);
-
-    if (hFind == INVALID_HANDLE_VALUE) {
-        std::wcerr << L"Nie mo¿na znaleŸæ plików w folderze: " << folderPath << std::endl;
-        return;
-    }
-
-    do {
-        if (!(findFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
-            saveWalker_Listbox->Items->Add(msclr::interop::marshal_as<String^>(findFileData.cFileName));
-        }
-    } while (FindNextFile(hFind, &findFileData) != 0);
-
-    FindClose(hFind);
-}
-void easyBot::main_form::walkerActions_ComboBox_SelectedIndexChanged(System::Object^ sender, System::EventArgs^ e) {
-    if (walkerActions_ComboBox->SelectedItem != nullptr && walkerActions_ComboBox->SelectedItem->ToString() == "Walk")
-    {
-        walkerAction_TextBox->Enabled = false;
-    }
-    else
-    {
-        walkerAction_TextBox->Enabled = true;
-    }
 }
 void easyBot::main_form::saveWalker(System::Object^ sender, System::EventArgs^ e)
 {
@@ -219,14 +185,14 @@ void easyBot::main_form::startWalkerBot_thread(Object^ sender, System::Component
                 mapY = System::Convert::ToInt32(walker_Listbox->Items[waypoint]->ToString()->Split('Y')[1]->Substring(2));
                 myX = *(short int*)myPosPointer;
                 myY = *(short int*)(myPosPointer + 0x02);
-                Sleep(500);
+                Sleep(250);
                 MoveTo(mapY * 65536 + mapX);
                 timer = 0;
                 while (myX != mapX && myY != mapY && !walkerBot_Worker->CancellationPending)
                 {
                     myX = *(short int*)myPosPointer;
                     myY = *(short int*)(myPosPointer + 0x02);
-                    if (timer > 1)
+                    if (timer > 0.5)
                     {
                         MoveTo(mapY * 65536 + mapX);
                         timer = 0;
@@ -236,6 +202,7 @@ void easyBot::main_form::startWalkerBot_thread(Object^ sender, System::Component
                 }
                 if (myX == mapX && myY == mapY)
                 {
+                    timer = 0;
                     if (waypoint < (unsigned int)walker_Listbox->Items->Count - 1)
                     {
                         ++waypoint;

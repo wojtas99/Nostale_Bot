@@ -42,6 +42,33 @@ void easyBot::main_form::InitializeMainTab(void)
     startBot_Button->Click += gcnew EventHandler(this, &main_form::startBot);
     mainTab->Controls->Add(startBot_Button);
 }
+
+void easyBot::main_form::ListFilesInFolder(const std::wstring& folderPath) {
+    WIN32_FIND_DATA findFileData;
+    HANDLE hFind = FindFirstFile((folderPath + L"\\*").c_str(), &findFileData);
+
+    if (hFind == INVALID_HANDLE_VALUE) {
+        return;
+    }
+    do {
+        if (!(findFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+            if (folderPath == L"Waypoints")
+            {
+                saveWalker_Listbox->Items->Add(msclr::interop::marshal_as<String^>(findFileData.cFileName));
+            }
+            else if (folderPath == L"Target")
+            {
+                saveTarget_Listbox->Items->Add(msclr::interop::marshal_as<String^>(findFileData.cFileName));
+            }
+            else if (folderPath == L"Loot")
+            {
+                saveLoot_Listbox->Items->Add(msclr::interop::marshal_as<String^>(findFileData.cFileName));
+            }
+        }
+    } while (FindNextFile(hFind, &findFileData) != 0);
+
+    FindClose(hFind);
+}
 void easyBot::main_form::startBot(Object^ sender, EventArgs^ e)
 {
     if (startBot_Button->BackColor == Color::Red)
