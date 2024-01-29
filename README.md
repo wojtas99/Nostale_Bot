@@ -14,4 +14,5 @@ Simply inject it into your game client by cheat engine or something else and the
 
 Healing is not refined, to make it work you need to set the hp healing item on key 2 and the mana healing item on key 1.
 
-![image](https://github.com/wojtas99/Nostale_Bot/assets/104061941/7128dd87-d56e-4b5c-a1f9-37c94807aaa0)
+![image](https://github.com/wojtas99/Nostale_Bot/assets/104061941/7aa00913-916c-431a-b174-b6fe10fe3752)
+
