@@ -214,6 +214,10 @@ void easyBot::main_form::startWalkerBot_thread(Object^ sender, System::Component
                     state = 0;
                 }
             }
+            else
+            {
+                state = 0;
+            }
         }
         Sleep(50);
     }
