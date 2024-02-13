@@ -153,7 +153,7 @@ void easyBot::main_form::refreshItems(System::Object^ sender, System::EventArgs^
     lootBlack_Listbox->Items->Clear();
     for (unsigned int i = 0; i < itemsOnTheGround; ++i)
     {
-        DWORD itemsGround = ReadPointer(0x003266D8, { 0xE8C, 0x04, 0x6E4, 0x00 });
+        DWORD itemsGround = ReadPointer(0x004BB2AC, { 0x28, 0xFA0, 0x4, 0x6A4, 0x0 });
         itemsGround = *(DWORD*)(itemsGround + 0x04 * i);
         itemsGround = *(DWORD*)(itemsGround + 0xC4);
         itemsGround = *(DWORD*)(itemsGround + 0x38);
@@ -341,7 +341,7 @@ void easyBot::main_form::checkBoxLoot_CheckedChanged(System::Object^ sender, Sys
 
 void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e)
 {
-    DWORD myPosPointer = ReadPointer(0x004C4B34, { 0xCC, 0xFC, 0x8, 0x2EC, 0xC });
+    DWORD myPosPointer = ReadPointer(0x004C4E74, { 0x268, 0x8, 0xC4, 0xC8, 0xF04 });
 
     short int myX;
     short int myY;
@@ -366,7 +366,7 @@ void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentMo
             {
                 for (int item = 0; item < (int)*(DWORD*)numberOfItemsOnTheGround; ++item)
                 {
-                    DWORD itemsPointer = ReadPointer(0x003266D8, { 0xE8C, 0x4, 0x6E4, 0x0 });
+                    DWORD itemsPointer = ReadPointer(0x004BB2AC, { 0x28, 0xFA0, 0x4, 0x6A4, 0x0 });
                     itemsPointer = *(DWORD*)(itemsPointer + item * 0x04);
                     myX = *(short int*)myPosPointer;
                     myY = *(short int*)(myPosPointer + 0x2);
@@ -384,7 +384,7 @@ void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentMo
                             timer += 0.05;
                             if (timer > 1)
                             {
-                                MoveTo((rand() % 3 - 1 + entityY) * 65536 + entityX + rand() % 3 - 1);
+                                MoveTo(entityY * 65536 + entityX);
                                 timer = 0;
                             }
                         }
@@ -400,7 +400,7 @@ void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentMo
             {
                 for (int item = 0; item < (int)*(DWORD*)numberOfItemsOnTheGround; ++item)
                 {
-                    DWORD itemsPointer = ReadPointer(0x003266D8, { 0xE8C, 0x4, 0x6E4, 0x0 });
+                    DWORD itemsPointer = ReadPointer(0x004BB2AC, { 0x28, 0xFA0, 0x4, 0x6A4, 0x0 });
                     itemsPointer = *(DWORD*)(itemsPointer + item * 0x04);
                     myX = *(short int*)myPosPointer;
                     myY = *(short int*)(myPosPointer + 0x2);
@@ -423,7 +423,7 @@ void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentMo
                                     timer += 0.05;
                                     if (timer > 2)
                                     {
-                                        MoveTo((rand() % 3 - 1 + entityY) * 65536 + entityX + rand() % 3 - 1);
+                                        MoveTo(entityY * 65536 + entityX);
                                         timer = 0;
                                     }
                                 }
@@ -441,7 +441,7 @@ void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentMo
             {
                 for (int item = 0; item < (int)*(DWORD*)numberOfItemsOnTheGround; ++item)
                 {
-                    DWORD itemsPointer = ReadPointer(0x003266D8, { 0xE8C, 0x4, 0x6E4, 0x0 });
+                    DWORD itemsPointer = ReadPointer(0x004BB2AC, { 0x28, 0xFA0, 0x4, 0x6A4, 0x0 });
                     itemsPointer = *(DWORD*)(itemsPointer + item * 0x04);
                     myX = *(short int*)myPosPointer;
                     myY = *(short int*)(myPosPointer + 0x2);
@@ -464,7 +464,7 @@ void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentMo
                                     timer += 0.05;
                                     if (timer > 2)
                                     {
-                                        MoveTo((rand() % 3 - 1 + entityY) * 65536 + entityX + rand() % 3 - 1);
+                                        MoveTo(entityY * 65536 + entityX);
                                         timer = 0;
                                     }
                                 }

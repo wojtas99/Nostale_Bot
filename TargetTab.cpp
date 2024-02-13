@@ -304,7 +304,7 @@ void easyBot::main_form::refreshMonsters(System::Object^ sender, System::EventAr
     DWORD monster;
     for (int i = 0; i < (int)*(DWORD*)ReadPointer(0x003282C0, { 0x08, 0x04, 0x7C, 0x04, 0x528 }); ++i)
     {
-        DWORD entityListPointer = ReadPointer(0x003266D8, { 0xE8C, 0x4, 0x6A4, 0x0 });
+        DWORD entityListPointer = ReadPointer(0x003282D8, { 0x244, 0x0 });
         monster = *(DWORD*)(*(DWORD*)(*(DWORD*)(entityListPointer + 0x04 * i) + 0x1BC) + 0x04);
         for (int tmp = 0; tmp < (int)targetBlack_Listbox->Items->Count; ++tmp)
         {
@@ -339,7 +339,7 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
     }
     string monsterName;
 
-    DWORD myPosPointer = ReadPointer(0x004C4B34, { 0xCC, 0xFC, 0x8, 0x2EC, 0xC });
+    DWORD myPosPointer = ReadPointer(0x004C4E74, { 0x268, 0x8, 0xC4, 0xC8, 0xF04 });
     DWORD entityListPointer;
     DWORD monsterStatus;
 
@@ -356,7 +356,7 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
         {
             for (unsigned int i = 0; i < (unsigned int)*(uint32_t*)ReadPointer(0x003282C0, { 0x08, 0x04, 0x7C, 0x04, 0x528 }) - 1; ++i)
             {
-                entityListPointer = ReadPointer(0x003266D8, { 0xE8C, 0x4, 0x6A4, 0x0 });
+                entityListPointer = ReadPointer(0x003282D8, { 0x244, 0x0 });
                 monsterStatus = *(DWORD*)(entityListPointer + 0x04 * i);
                 monsterName = (string)(const char*)*(DWORD*)(*(DWORD*)(monsterStatus + 0x1BC) + 0x04);
                 if (attackBlack_CheckBox->Checked)

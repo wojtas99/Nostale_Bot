@@ -68,12 +68,13 @@ void Rest(void)
 }
 void Collect(uint32_t item)
 {
-    DWORD characterPointer = ReadPointer(0x004C4E4C, { 0x560, 0x1C, 0x10, 0xB60, 0x00 });
+    
+    DWORD characterPointer = ReadPointer(0x330E8C, { 0x0 });
     _asm
     {
         MOV EAX, [lpvCollectThis]
         MOV EAX, [EAX]
-        MOV ECX, [characterPointer]
+        MOV ECX, characterPointer;
         MOV EDX, [ECX]
         MOV ESI, item
         MOV EDX, ESI
@@ -88,17 +89,17 @@ BOOL StartBot()
 
 BOOL FindAddresses()
 {
-    lpvAttack = FindPattern(ATTACK_PATTERN, ATTACK_MASK);
+    lpvAttack = (LPVOID)0x006D3430;
 
-    lpvAttackThis = FindPattern(ATTACK_THIS_PATTERN, ATTACK_THIS_MASK);
+    lpvAttackThis = (LPVOID)0x00735C04;
 
-    lpvMove = FindPattern(MOVE_PATTERN, MOVE_MASK);
+    lpvMove = (LPVOID)0x005405DC;
 
-    lpvMoveThis = (LPVOID)0x008C45F4;
+    lpvMoveThis = (LPVOID)0x008C4634;
 
-    lpvCollect = FindPattern(COLLECT_PATTERN, COLLECT_MASK);
+    lpvCollect = (LPVOID)0x006D388C;
 
-    lpvCollectThis = FindPattern(COLLECT_THIS_PATTERN, COLLECT_THIS_MASK);
+    lpvCollectThis = (LPVOID)0x00735C04;
 
     return lpvMove && lpvMoveThis && lpvAttack && lpvAttackThis && lpvCollect && lpvCollectThis;
 }
