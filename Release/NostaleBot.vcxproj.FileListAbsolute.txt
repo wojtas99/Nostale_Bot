@@ -1,2 +1,4 @@
 C:\ProjektyGit\Nostale_Bot\Release\NostaleBot.vcxproj.AssemblyReference.cache
 C:\ProjektyGit\Nostale_Bot\Release\NostaleBot.dll
+C:\Projekty_Git\Nostale_Bot\Release\NostaleBot.vcxproj.AssemblyReference.cache
+C:\Projekty_Git\Nostale_Bot\Release\NostaleBot.dll

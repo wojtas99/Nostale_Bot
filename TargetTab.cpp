@@ -339,7 +339,7 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
     }
     string monsterName;
 
-    DWORD myPosPointer = ReadPointer(0x004C4E74, { 0x268, 0x8, 0xC4, 0xC8, 0xF04 });
+    DWORD myPosPointer = ReadPointer(0x004C4E38, { 0x238, 0x20, 0x04, 0xAA0, 0xC });
     DWORD entityListPointer;
     DWORD monsterStatus;
 
