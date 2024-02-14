@@ -1,2 +1,5 @@
-﻿  CallFunction.c
+﻿  LootTab.cpp
+  TargetTab.cpp
+  WalkerTab.cpp
+  Generating Code...
   NostaleBot.vcxproj -> C:\Projekty_Git\Nostale_Bot\Release\NostaleBot.dll

@@ -159,7 +159,7 @@ void easyBot::main_form::loadWalker(System::Object^ sender, System::EventArgs^ e
 }
 void easyBot::main_form::addWaypoint(System::Object^ sender, System::EventArgs^ e)
 {
-    DWORD myPosPointer = ReadPointer(0x004C4E38, { 0x238, 0x20, 0x04, 0xAA0, 0xC });
+    DWORD myPosPointer = ReadPointer(0x004C4E48, { 0xD28, 0x2C0, 0x04, 0xAA0, 0xC });
     short int myX = (short int)*(short int*)myPosPointer;
     short int myY = (short int)*(short int*)(myPosPointer + 0x02);
     if (*(uint32_t*)myPosPointer != 0)
@@ -168,7 +168,7 @@ void easyBot::main_form::addWaypoint(System::Object^ sender, System::EventArgs^ 
 //###################### StartWalker ######################
 void easyBot::main_form::startWalkerBot_thread(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e)
 {
-    DWORD myPosPointer = ReadPointer(0x004C4E38, { 0x238, 0x20, 0x04, 0xAA0, 0xC });
+    DWORD myPosPointer = ReadPointer(0x004C4E48, { 0xD28, 0x2C0, 0x04, 0xAA0, 0xC });
     double timer = 0;
     short int myX;
     short int myY;

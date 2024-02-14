@@ -341,7 +341,7 @@ void easyBot::main_form::checkBoxLoot_CheckedChanged(System::Object^ sender, Sys
 
 void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e)
 {
-    DWORD myPosPointer = ReadPointer(0x004C4E38, { 0x238, 0x20, 0x04, 0xAA0, 0xC });
+    DWORD myPosPointer = ReadPointer(0x004C4E48, { 0xD28, 0x2C0, 0x04, 0xAA0, 0xC });
 
     short int myX;
     short int myY;
