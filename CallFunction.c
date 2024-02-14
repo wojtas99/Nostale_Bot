@@ -91,7 +91,7 @@ BOOL FindAddresses()
 {
     lpvAttack = FindPattern(ATTACK_PATTERN, ATTACK_MASK);
 
-    lpvAttackThis = FindPattern(ATTACK_THIS_PATTERN, ATTACK_THIS_MASK);
+    lpvAttackThis = (LPVOID)0x00735C04;
 
     lpvMove = FindPattern(MOVE_PATTERN, MOVE_MASK);
 
