@@ -36,6 +36,7 @@ void easyBot::main_form::InitializeWalkerTab(void)
     walker_Listbox = gcnew System::Windows::Forms::ListBox();
     walker_Listbox->Size = System::Drawing::Size(140, 303);
     walker_Listbox->Location = Point(10, 20);
+    walker_Listbox->DoubleClick += gcnew EventHandler(this, &main_form::deleteWaypoint);
 
     saveWalker_Listbox = gcnew System::Windows::Forms::ListBox();
     saveWalker_Listbox->Size = System::Drawing::Size(150, 69);
@@ -116,6 +117,14 @@ void easyBot::main_form::InitializeWalkerTab(void)
     waypointTab->Controls->Add(saveWalker_GroupBox);
     waypointTab->Controls->Add(currentStatus_GroupBox);
 }
+void easyBot::main_form::deleteWaypoint(System::Object^ sender, System::EventArgs^ e)
+{
+    bool found = 0;
+    if (walker_Listbox->SelectedItem != nullptr)
+    {
+        walker_Listbox->Items->Remove(walker_Listbox->SelectedItem);
+    }
+}
 void easyBot::main_form::saveWalker(System::Object^ sender, System::EventArgs^ e)
 {
     if (saveWalker_TextBox->Text != "")
@@ -159,7 +168,7 @@ void easyBot::main_form::loadWalker(System::Object^ sender, System::EventArgs^ e
 }
 void easyBot::main_form::addWaypoint(System::Object^ sender, System::EventArgs^ e)
 {
-    DWORD myPosPointer = ReadPointer(0x004C4E48, { 0xD28, 0x2C0, 0x04, 0xAA0, 0xC });
+    DWORD myPosPointer = ReadPointer(0x004C44EC, { 0x1C, 0x4, 0x0, 0x40, 0xC });
     short int myX = (short int)*(short int*)myPosPointer;
     short int myY = (short int)*(short int*)(myPosPointer + 0x02);
     if (*(uint32_t*)myPosPointer != 0)
@@ -168,7 +177,7 @@ void easyBot::main_form::addWaypoint(System::Object^ sender, System::EventArgs^ 
 //###################### StartWalker ######################
 void easyBot::main_form::startWalkerBot_thread(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e)
 {
-    DWORD myPosPointer = ReadPointer(0x004C4E48, { 0xD28, 0x2C0, 0x04, 0xAA0, 0xC });
+    DWORD myPosPointer = ReadPointer(0x004C44EC, { 0x1C, 0x4, 0x0, 0x40, 0xC });
     double timer = 0;
     short int myX;
     short int myY;

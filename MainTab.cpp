@@ -76,6 +76,7 @@ void easyBot::main_form::startBot(Object^ sender, EventArgs^ e)
         startBot_Button->BackColor = Color::Green;
         startBot_Button->Text = "Stop Bot";
         lootRadius_TextBox->Enabled = 0;
+        attackRadius_TextBox->Enabled = 0;
         targetBot_Worker->RunWorkerAsync();
         lootBot_Worker->RunWorkerAsync();
         walkerBot_Worker->RunWorkerAsync();

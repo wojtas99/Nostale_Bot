@@ -86,6 +86,7 @@ namespace easyBot
         void checkBoxLoot_CheckedChanged(System::Object^ sender, System::EventArgs^ e);
         void saveTarget(System::Object^ sender, System::EventArgs^ e);
         void loadTarget(System::Object^ sender, System::EventArgs^ e);
+        void deleteWaypoint(System::Object^ sender, System::EventArgs^ e);
         // Variables
         System::ComponentModel::Container^ components;
         System::Windows::Forms::TabControl^ tabView;

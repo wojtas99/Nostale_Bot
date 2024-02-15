@@ -300,6 +300,8 @@ void easyBot::main_form::loadTarget(System::Object^ sender, System::EventArgs^ e
 }
 void easyBot::main_form::refreshMonsters(System::Object^ sender, System::EventArgs^ e)
 {
+    targetBlack_Listbox->Items->Clear();
+    targetWhite_Listbox->Items->Clear();
     bool found = 0;
     DWORD monster;
     for (int i = 0; i < (int)*(DWORD*)ReadPointer(0x003282C0, { 0x08, 0x04, 0x7C, 0x04, 0x528 }); ++i)
@@ -339,7 +341,7 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
     }
     string monsterName;
 
-    DWORD myPosPointer = ReadPointer(0x004C4E48, { 0xD28, 0x2C0, 0x04, 0xAA0, 0xC });
+    DWORD myPosPointer = ReadPointer(0x004C44EC, { 0x1C, 0x4, 0x0, 0x40, 0xC });
     DWORD entityListPointer;
     DWORD monsterStatus;
 
