@@ -168,16 +168,14 @@ void easyBot::main_form::loadWalker(System::Object^ sender, System::EventArgs^ e
 }
 void easyBot::main_form::addWaypoint(System::Object^ sender, System::EventArgs^ e)
 {
-    DWORD myPosPointer = ReadPointer(0x004C44EC, { 0x1C, 0x4, 0x0, 0x40, 0xC });
-    short int myX = (short int)*(short int*)myPosPointer;
-    short int myY = (short int)*(short int*)(myPosPointer + 0x02);
-    if (*(uint32_t*)myPosPointer != 0)
+    short int myX = (short int)*(short int*)myPosition;
+    short int myY = (short int)*(short int*)(myPosition + 0x02);
+    if (*(uint32_t*)myPosition != 0)
         walker_Listbox->Items->Add("X = " + myX + " Y = " + myY);
 }
 //###################### StartWalker ######################
 void easyBot::main_form::startWalkerBot_thread(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e)
 {
-    DWORD myPosPointer = ReadPointer(0x004C44EC, { 0x1C, 0x4, 0x0, 0x40, 0xC });
     double timer = 0;
     short int myX;
     short int myY;
@@ -192,15 +190,15 @@ void easyBot::main_form::startWalkerBot_thread(Object^ sender, System::Component
                 walker_Listbox->SetSelected(waypoint, TRUE);
                 mapX = System::Convert::ToInt32(walker_Listbox->Items[waypoint]->ToString()->Split('Y')[0]->Substring(3));
                 mapY = System::Convert::ToInt32(walker_Listbox->Items[waypoint]->ToString()->Split('Y')[1]->Substring(2));
-                myX = *(short int*)myPosPointer;
-                myY = *(short int*)(myPosPointer + 0x02);
+                myX = *(short int*)myPosition;
+                myY = *(short int*)(myPosition + 0x02);
                 Sleep(250);
                 MoveTo(mapY * 65536 + mapX);
                 timer = 0;
                 while (myX != mapX && myY != mapY && !walkerBot_Worker->CancellationPending)
                 {
-                    myX = *(short int*)myPosPointer;
-                    myY = *(short int*)(myPosPointer + 0x02);
+                    myX = *(short int*)myPosition;
+                    myY = *(short int*)(myPosition + 0x02);
                     if (timer > 0.5)
                     {
                         MoveTo(mapY * 65536 + mapX);

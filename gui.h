@@ -87,6 +87,7 @@ namespace easyBot
         void saveTarget(System::Object^ sender, System::EventArgs^ e);
         void loadTarget(System::Object^ sender, System::EventArgs^ e);
         void deleteWaypoint(System::Object^ sender, System::EventArgs^ e);
+        void refreshSpell(System::Object^ sender, System::EventArgs^ e);
         // Variables
         System::ComponentModel::Container^ components;
         System::Windows::Forms::TabControl^ tabView;
@@ -109,12 +110,11 @@ namespace easyBot
         System::Windows::Forms::ComboBox^ targetSpell_ComboBox;
         System::Windows::Forms::Button^ refreshTarget_Button;
         System::Windows::Forms::Button^ addSpell_Button;
+        System::Windows::Forms::Button^ refreshSpell_Button;
         System::Windows::Forms::Button^ loadTarget_Button;
         System::Windows::Forms::Button^ saveTarget_Button;
-        System::Windows::Forms::TextBox^ attackRadius_TextBox;
         System::Windows::Forms::TextBox^ saveTarget_TextBox;
         System::Windows::Forms::Label^ saveTarget_Label;
-        System::Windows::Forms::Label^ attackRadiu_Label;
         System::Windows::Forms::CheckBox^ attackWhite_CheckBox;
         System::Windows::Forms::CheckBox^ attackBlack_CheckBox;
         System::Windows::Forms::CheckBox^ attackEverything_CheckBox;
@@ -182,14 +182,29 @@ namespace easyBot
         System::Windows::Forms::Button^ saveLoot_Button;
         System::Windows::Forms::Button^ loadLoot_Button;
         System::Windows::Forms::TextBox^ addLootItem_TextBox;
-        System::Windows::Forms::TextBox^ lootRadius_TextBox;
         System::Windows::Forms::TextBox^ saveLoot_TextBox;
         System::Windows::Forms::Label^ itemName_Label;
-        System::Windows::Forms::Label^ lootRadius_Label;
         System::Windows::Forms::Label^ saveLoot_Label;
         System::Windows::Forms::CheckBox^ lootWhite_CheckBox;
         System::Windows::Forms::CheckBox^ lootBlack_CheckBox;
         System::Windows::Forms::CheckBox^ lootEverything_CheckBox;
+
+        // Pointers
+        DWORD myPosition = ReadPointer(0x004F4904, { 0x20, 0x0C});
+
+        DWORD monsterCount = ReadPointer(0x003582C0, { 0x8, 0x4, 0X60, 0X4, 0X608 });
+        DWORD monsterList = ReadPointer(0x003566D8, { 0xEA4, 0x4, 0X5E4, 0X0 });
+
+        DWORD itemCount = ReadPointer(0x003582C0, { 0x8, 0X4, 0X7C, 0X4, 0X568 });
+        DWORD itemListPointer = ReadPointer(0x003566D8, { 0xEB0, 0X4, 0X5C4, 0X0 });
+
+        DWORD myStats = ReadPointer(0x003566D8, { 0xEB0, 0X4, 0X5C4, 0X0 });
+
+        DWORD range = ReadPointer(0x004F4904, { 0x68 });
+
+        DWORD skillList = ReadPointer(0x004F4CF0, { 0x388, 0XA8, 0X8, 0X14 });
+        DWORD skillCount = ReadPointer(0x004F4C70, { 0X3EC, 0X768 });
+
     };
 }
 #endif // GUI_H

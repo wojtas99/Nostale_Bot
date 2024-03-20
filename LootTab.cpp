@@ -70,11 +70,6 @@ void easyBot::main_form::InitializeLootTab(void)
     addLootItem_TextBox->Location = Point(96, 19);
     addLootItem_TextBox->Size = System::Drawing::Size(99, 20);
 
-    lootRadius_TextBox = gcnew System::Windows::Forms::TextBox();
-    lootRadius_TextBox->Location = Point(96, 53);
-    lootRadius_TextBox->Size = System::Drawing::Size(64, 20);
-    lootRadius_TextBox->Text = "10";
-
     saveLoot_TextBox = gcnew System::Windows::Forms::TextBox();
     saveLoot_TextBox->Location = Point(52, 94);
     saveLoot_TextBox->Size = System::Drawing::Size(108, 20);
@@ -91,12 +86,6 @@ void easyBot::main_form::InitializeLootTab(void)
     itemName_Label->Text = "Item Name";
     itemName_Label->Width = 85;
     itemName_Label->Font = gcnew System::Drawing::Font("Microsoft Sans Serif", 10, FontStyle::Regular);
-
-    lootRadius_Label = gcnew System::Windows::Forms::Label();
-    lootRadius_Label->Location = Point(7, 54);
-    lootRadius_Label->Text = "Loot Radius";
-    lootRadius_Label->Width = 85;
-    lootRadius_Label->Font = gcnew System::Drawing::Font("Microsoft Sans Serif", 10, FontStyle::Regular);
 
     //######################  CheckBoxes  ########################
     lootWhite_CheckBox = gcnew System::Windows::Forms::CheckBox();
@@ -123,12 +112,10 @@ void easyBot::main_form::InitializeLootTab(void)
     lootBlack_GroupBox->Controls->Add(lootBlack_Listbox);
 
     addLoot_GroupBox->Controls->Add(itemName_Label);
-    addLoot_GroupBox->Controls->Add(lootRadius_Label);
     addLoot_GroupBox->Controls->Add(lootWhite_CheckBox);
     addLoot_GroupBox->Controls->Add(lootBlack_CheckBox);
     addLoot_GroupBox->Controls->Add(lootEverything_CheckBox);
     addLoot_GroupBox->Controls->Add(addLootItem_TextBox);
-    addLoot_GroupBox->Controls->Add(lootRadius_TextBox);
     addLoot_GroupBox->Controls->Add(addLootItem_Button);
     addLoot_GroupBox->Controls->Add(refreshLoot_Button);
 
@@ -148,18 +135,15 @@ void easyBot::main_form::InitializeLootTab(void)
 
 void easyBot::main_form::refreshItems(System::Object^ sender, System::EventArgs^ e)
 {
-    unsigned int itemsOnTheGround = (unsigned int)*(DWORD*)ReadPointer(0x003282D8, { 0x288 });
     bool found = 0;
     lootBlack_Listbox->Items->Clear();
-    for (unsigned int i = 0; i < itemsOnTheGround; ++i)
+    DWORD itemList;
+    for (int i = 0; i < (int)*(DWORD*)itemCount; ++i)
     {
-        DWORD itemsGround = ReadPointer(0x004BB2AC, { 0x28, 0xFA0, 0x4, 0x6A4, 0x0 });
-        itemsGround = *(DWORD*)(itemsGround + 0x04 * i);
-        itemsGround = *(DWORD*)(itemsGround + 0xC4);
-        itemsGround = *(DWORD*)(itemsGround + 0x38);
+        itemList = *(DWORD*)(*(DWORD*)(*(DWORD*)(itemListPointer + 0x04 * i) + 0xC4) + 0x38);
         for (int tmp = 0; tmp < (int)lootBlack_Listbox->Items->Count; ++tmp)
         {
-            if (gcnew System::String((const char*)itemsGround) == lootBlack_Listbox->Items[tmp]->ToString())
+            if (gcnew System::String((const char*)itemList) == lootBlack_Listbox->Items[tmp]->ToString())
             {
                 found = 1;
                 break;
@@ -167,7 +151,7 @@ void easyBot::main_form::refreshItems(System::Object^ sender, System::EventArgs^
         }
         for (int tmp = 0; tmp < (int)lootWhite_Listbox->Items->Count; ++tmp)
         {
-            if (gcnew System::String((const char*)itemsGround) == lootWhite_Listbox->Items[tmp]->ToString())
+            if (gcnew System::String((const char*)itemList) == lootWhite_Listbox->Items[tmp]->ToString())
             {
                 found = 1;
                 break;
@@ -175,7 +159,7 @@ void easyBot::main_form::refreshItems(System::Object^ sender, System::EventArgs^
         }
         if (!found)
         {
-            lootBlack_Listbox->Items->Add(gcnew System::String((const char*)itemsGround));
+            lootBlack_Listbox->Items->Add(gcnew System::String((const char*)itemList));
         }
         found = 0;
     }
@@ -341,21 +325,16 @@ void easyBot::main_form::checkBoxLoot_CheckedChanged(System::Object^ sender, Sys
 
 void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e)
 {
-    DWORD myPosPointer = ReadPointer(0x004C44EC, { 0x1C, 0x4, 0x0, 0x40, 0xC });
-
+    
+    DWORD itemList;
     short int myX;
     short int myY;
     short int entityX;
     short int entityY;
 
-    double timer = 0;
+    int lootRange = (int)*(BYTE*)range;
 
-    int lootRadius = System::Convert::ToInt32(lootRadius_TextBox->Text->ToString());
-    if (lootRadius_TextBox->Text == "")
-    {
-        lootRadius = 10;
-    }
-    DWORD numberOfItemsOnTheGround = ReadPointer(0x003282D8, { 0x288 });
+    double timer = 0;
 
     String^ itemName;
     while (!lootBot_Worker->CancellationPending)
@@ -364,22 +343,21 @@ void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentMo
         {
             if (lootEverything_CheckBox->Checked)
             {
-                for (int item = 0; item < (int)*(DWORD*)numberOfItemsOnTheGround; ++item)
+                for (int item = 0; item < (int)*(DWORD*)itemCount; ++item)
                 {
-                    DWORD itemsPointer = ReadPointer(0x004BB2AC, { 0x28, 0xFA0, 0x4, 0x6A4, 0x0 });
-                    itemsPointer = *(DWORD*)(itemsPointer + item * 0x04);
-                    myX = *(short int*)myPosPointer;
-                    myY = *(short int*)(myPosPointer + 0x2);
-                    entityX = *(short int*)(itemsPointer + 0x0C);
-                    entityY = *(short int*)(itemsPointer + 0x0E);
-                    itemsPointer = (uint32_t)itemsPointer;
-                    if (abs(myX - entityX) <  lootRadius && abs(myY - entityY) < lootRadius)
+                    itemList = *(DWORD*)(itemListPointer + item * 0x04);
+                    myX = *(short int*)myPosition;
+                    myY = *(short int*)(myPosition + 0x2);
+                    entityX = *(short int*)(itemList + 0x0C);
+                    entityY = *(short int*)(itemList + 0x0E);
+                    itemList = (uint32_t)itemList;
+                    if (abs(myX - entityX) < lootRange && abs(myY - entityY) < lootRange)
                     {
                         MoveTo(entityY * 65536 + entityX);
                         while (abs(myX - entityX) > 1 && abs(myY - entityY) > 1)
                         {
-                            myX = *(short int*)myPosPointer;
-                            myY = *(short int*)(myPosPointer + 0x2);
+                            myX = *(short int*)myPosition;
+                            myY = *(short int*)(myPosition + 0x2);
                             Sleep(50);
                             timer += 0.05;
                             if (timer > 1)
@@ -389,7 +367,7 @@ void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentMo
                             }
                         }
                         Sleep(200);
-                        Collect(itemsPointer);
+                        Collect(itemList);
                         Sleep(100);
                         timer = 0;
                         item = 0;
@@ -398,17 +376,16 @@ void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentMo
             }
             else if (lootBlack_CheckBox->Checked)
             {
-                for (int item = 0; item < (int)*(DWORD*)numberOfItemsOnTheGround; ++item)
+                for (int item = 0; item < (int)*(DWORD*)itemCount; ++item)
                 {
-                    DWORD itemsPointer = ReadPointer(0x004BB2AC, { 0x28, 0xFA0, 0x4, 0x6A4, 0x0 });
-                    itemsPointer = *(DWORD*)(itemsPointer + item * 0x04);
-                    myX = *(short int*)myPosPointer;
-                    myY = *(short int*)(myPosPointer + 0x2);
-                    entityX = *(short int*)(itemsPointer + 0x0C);
-                    entityY = *(short int*)(itemsPointer + 0x0E);
-                    itemsPointer = (uint32_t)itemsPointer;
-                    itemName = gcnew System::String((const char*)*(DWORD*)(*(DWORD*)(itemsPointer + 0xC4) + 0x38));
-                    if (abs(myX - entityX) < lootRadius && abs(myY - entityY) < lootRadius)
+                    itemList = *(DWORD*)(itemListPointer + item * 0x04);
+                    myX = *(short int*)myPosition;
+                    myY = *(short int*)(myPosition + 0x2);
+                    entityX = *(short int*)(itemList + 0x0C);
+                    entityY = *(short int*)(itemList + 0x0E);
+                    itemList = (uint32_t)itemList;
+                    itemName = gcnew System::String((const char*)*(DWORD*)(*(DWORD*)(itemList + 0xC4) + 0x38));
+                    if (abs(myX - entityX) < lootRange && abs(myY - entityY) < lootRange)
                     {
                         for (int i = 0; i < (int)lootBlack_Listbox->Items->Count; ++i)
                         {
@@ -417,8 +394,8 @@ void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentMo
                                 MoveTo(entityY * 65536 + entityX);
                                 while (abs(myX - entityX) > 1 && abs(myY - entityY) > 1)
                                 {
-                                    myX = *(short int*)myPosPointer;
-                                    myY = *(short int*)(myPosPointer + 0x2);
+                                    myX = *(short int*)myPosition;
+                                    myY = *(short int*)(myPosition + 0x2);
                                     Sleep(50);
                                     timer += 0.05;
                                     if (timer > 2)
@@ -428,7 +405,7 @@ void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentMo
                                     }
                                 }
                                 Sleep(200);
-                                Collect(itemsPointer);
+                                Collect(itemList);
                                 Sleep(100);
                                 timer = 0;
                                 item = 0;
@@ -439,17 +416,16 @@ void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentMo
             }
             else if (lootWhite_CheckBox->Checked)
             {
-                for (int item = 0; item < (int)*(DWORD*)numberOfItemsOnTheGround; ++item)
+                for (int item = 0; item < (int)*(DWORD*)itemCount; ++item)
                 {
-                    DWORD itemsPointer = ReadPointer(0x004BB2AC, { 0x28, 0xFA0, 0x4, 0x6A4, 0x0 });
-                    itemsPointer = *(DWORD*)(itemsPointer + item * 0x04);
-                    myX = *(short int*)myPosPointer;
-                    myY = *(short int*)(myPosPointer + 0x2);
-                    entityX = *(short int*)(itemsPointer + 0x0C);
-                    entityY = *(short int*)(itemsPointer + 0x0E);
-                    itemsPointer = (uint32_t)itemsPointer;
-                    itemName = gcnew System::String((const char*)*(DWORD*)(*(DWORD*)(itemsPointer + 0xC4) + 0x38));
-                    if (abs(myX - entityX) < lootRadius && abs(myY - entityY) < lootRadius)
+                    itemList = *(DWORD*)(itemListPointer + item * 0x04);
+                    myX = *(short int*)myPosition;
+                    myY = *(short int*)(myPosition + 0x2);
+                    entityX = *(short int*)(itemList + 0x0C);
+                    entityY = *(short int*)(itemList + 0x0E);
+                    itemList = (uint32_t)itemList;
+                    itemName = gcnew System::String((const char*)*(DWORD*)(*(DWORD*)(itemList + 0xC4) + 0x38));
+                    if (abs(myX - entityX) < lootRange && abs(myY - entityY) < lootRange)
                     {
                         for (int i = 0; i < (int)lootWhite_Listbox->Items->Count; ++i)
                         {
@@ -458,8 +434,8 @@ void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentMo
                                 MoveTo(entityY * 65536 + entityX);
                                 while (abs(myX - entityX) > 1 && abs(myY - entityY) > 1)
                                 {
-                                    myX = *(short int*)myPosPointer;
-                                    myY = *(short int*)(myPosPointer + 0x2);
+                                    myX = *(short int*)myPosition;
+                                    myY = *(short int*)(myPosition + 0x2);
                                     Sleep(50);
                                     timer += 0.05;
                                     if (timer > 2)
@@ -469,7 +445,7 @@ void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentMo
                                     }
                                 }
                                 Sleep(200);
-                                Collect(itemsPointer);
+                                Collect(itemList);
                                 Sleep(100);
                                 timer = 0;
                                 item = 0;

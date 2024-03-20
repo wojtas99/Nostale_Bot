@@ -70,7 +70,7 @@ void Rest(void)
 void Collect(uint32_t item)
 {
     
-    DWORD characterPointer = ReadPointer(0x330E8C, { 0x0 });
+    DWORD characterPointer = ReadPointer(0x360E7C, { 0x0 });
     _asm
     {
         MOV EAX, [lpvCollectThis]
@@ -93,15 +93,16 @@ BOOL FindAddresses()
     
     lpvAttack = FindPattern(ATTACK_PATTERN, ATTACK_MASK);
 
-    lpvAttackThis = (LPVOID)0x00735C04;
+    lpvAttackThis = (LPVOID)0x008F4904;
 
     lpvMove = FindPattern(MOVE_PATTERN, MOVE_MASK);
 
-    lpvMoveThis = (LPVOID)0x008C4634;
+    lpvMoveThis = (LPVOID)0x008F4904;
 
     lpvCollect = FindPattern(COLLECT_PATTERN, COLLECT_MASK);
 
-    lpvCollectThis = (LPVOID)0x00735C04;
+    lpvCollectThis = (LPVOID)0x00765EA8;
+
 
     return lpvMove && lpvMoveThis && lpvAttack && lpvAttackThis && lpvCollect && lpvCollectThis;
 }

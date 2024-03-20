@@ -75,14 +75,10 @@ void easyBot::main_form::startBot(Object^ sender, EventArgs^ e)
     {
         startBot_Button->BackColor = Color::Green;
         startBot_Button->Text = "Stop Bot";
-        lootRadius_TextBox->Enabled = 0;
-        attackRadius_TextBox->Enabled = 0;
         targetBot_Worker->RunWorkerAsync();
         lootBot_Worker->RunWorkerAsync();
         walkerBot_Worker->RunWorkerAsync();
-        healingBot_Worker->RunWorkerAsync();
-        walkerStatus_Label->Text = "Walker Status" + System::Environment::NewLine + "ON";
-        targetStatus_Label->Text = "Target Status" + System::Environment::NewLine + "ON";
+        //healingBot_Worker->RunWorkerAsync();
     }
     else
     {
@@ -97,7 +93,6 @@ void easyBot::main_form::startBot(Object^ sender, EventArgs^ e)
 //###################### Close Main_Form ######################
 void easyBot::main_form::main_form_FormClosing(System::Object^ sender, System::Windows::Forms::FormClosingEventArgs^ e)
 {
-    lootRadius_TextBox->Enabled = 1;
     targetBot_Worker->CancelAsync();
     healingBot_Worker->CancelAsync();
     walkerBot_Worker->CancelAsync();
