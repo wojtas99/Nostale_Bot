@@ -201,8 +201,8 @@ namespace easyBot
 
         DWORD range = ReadPointer(0x004F4904, { 0x68 });
 
-        DWORD skillList = ReadPointer(0x004F4DD0, { 0x158, 0X4, 0X4, 0X0, 0X8, 0X14 });
         DWORD skillCount = ReadPointer(0x004F4C70, { 0X3EC, 0X768 });
+        DWORD skillCD = ReadPointer(0x004F4CDC, { 0X170, 0XFB4 });
 
     };
 }

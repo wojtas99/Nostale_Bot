@@ -170,6 +170,8 @@ void easyBot::main_form::checkBox_CheckedChanged(System::Object^ sender, System:
 }
 void easyBot::main_form::refreshSpell(System::Object^ sender, System::EventArgs^ e)
 {
+    targetSpell_ComboBox->Items->Clear();
+    DWORD skillList = ReadPointer(0x004F4DD0, { 0x158, 0X4, 0X4, 0X0, 0X8, 0X14 });
     DWORD spell = skillList;
     for(int i = 0; i < (int)*(DWORD*)skillCount - 1; ++i)
     {
@@ -376,12 +378,15 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
                                 {
                                     for (int spell2 = 0; spell2 < (int)targetSpell_ComboBox->Items->Count; ++spell2)
                                     {
-                                        if(targetSpell_Listbox->Items[spell]->ToString() == targetSpell_ComboBox->Items[spell2]->ToString())
-                                            AttackMonster(monsterStatus,spell + 2);
+                                        if ((targetSpell_Listbox->Items[spell]->ToString() == targetSpell_ComboBox->Items[spell2]->ToString()) && ((int)*(DWORD*)(skillCD + spell2 * 0x120)) == 1)
+                                        {
+                                            AttackMonster(monsterStatus, (spell2 + 1));
+                                            break;
+                                        }
                                     }
                                 }
                                 AttackMonster(monsterStatus, 0);
-                                Sleep(550);
+                                Sleep(300);
                             }
                         }
                     }
@@ -407,12 +412,15 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
                                 {
                                     for (int spell2 = 0; spell2 < (int)targetSpell_ComboBox->Items->Count; ++spell2)
                                     {
-                                        if (targetSpell_Listbox->Items[spell]->ToString() == targetSpell_ComboBox->Items[spell2]->ToString())
-                                            AttackMonster(monsterStatus, spell + 2);
+                                        if ((targetSpell_Listbox->Items[spell]->ToString() == targetSpell_ComboBox->Items[spell2]->ToString()) && ((int)*(DWORD*)(skillCD + spell2 * 0x120)) == 1)
+                                        {
+                                            AttackMonster(monsterStatus, (spell2 + 1));
+                                            break;
+                                        }
                                     }
                                 }
                                 AttackMonster(monsterStatus, 0);
-                                Sleep(550);
+                                Sleep(300);
                             }
                         }
                     }
@@ -434,12 +442,15 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
                         {
                             for (int spell2 = 0; spell2 < (int)targetSpell_ComboBox->Items->Count; ++spell2)
                             {
-                                if (targetSpell_Listbox->Items[spell]->ToString() == targetSpell_ComboBox->Items[spell2]->ToString())
-                                    AttackMonster(monsterStatus, spell + 2);
+                                if ((targetSpell_Listbox->Items[spell]->ToString() == targetSpell_ComboBox->Items[spell2]->ToString()) && ((int)*(DWORD*)(skillCD + spell2 * 0x120)) == 1)
+                                {
+                                    AttackMonster(monsterStatus, (spell2 + 1));
+                                    break;
+                                }
                             }
                         }
                         AttackMonster(monsterStatus, 0);
-                        Sleep(550);
+                        Sleep(300);
                     }
                 }
             }        
