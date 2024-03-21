@@ -88,6 +88,8 @@ namespace easyBot
         void loadTarget(System::Object^ sender, System::EventArgs^ e);
         void deleteWaypoint(System::Object^ sender, System::EventArgs^ e);
         void refreshSpell(System::Object^ sender, System::EventArgs^ e);
+        void refreshHealingSkill(System::Object^ sender, System::EventArgs^ e);
+        void addHealingSkill(System::Object^ sender, System::EventArgs^ e);
         // Variables
         System::ComponentModel::Container^ components;
         System::Windows::Forms::TabControl^ tabView;
@@ -197,12 +199,13 @@ namespace easyBot
 
         DWORD itemCount = ReadPointer(0x003582C0, { 0x8, 0X4, 0X7C, 0X4, 0X568 });
 
-        DWORD myStats = ReadPointer(0x003566D8, { 0xEB0, 0X4, 0X5C4, 0X0 });
+        DWORD myStats = ReadPointer(0x00369D1C, { 0x5B8, 0X4, 0X10, 0XDE0 });
 
         DWORD range = ReadPointer(0x004F4904, { 0x68 });
 
         DWORD skillCount = ReadPointer(0x004F4C70, { 0X3EC, 0X768 });
         DWORD skillCD = ReadPointer(0x004F4CDC, { 0X170, 0XFB4 });
+
 
     };
 }

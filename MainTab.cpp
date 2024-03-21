@@ -78,7 +78,7 @@ void easyBot::main_form::startBot(Object^ sender, EventArgs^ e)
         targetBot_Worker->RunWorkerAsync();
         lootBot_Worker->RunWorkerAsync();
         walkerBot_Worker->RunWorkerAsync();
-        //healingBot_Worker->RunWorkerAsync();
+        healingBot_Worker->RunWorkerAsync();
     }
     else
     {

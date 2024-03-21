@@ -339,7 +339,7 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
     string monsterName;
 
     DWORD monsterStatus;
-    int attackRange = (int)*(BYTE*)range;
+    int attackRange = ((int)*(BYTE*)range) - 2;
 
     short int myX;
     short int myY;
