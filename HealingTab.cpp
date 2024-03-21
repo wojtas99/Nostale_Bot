@@ -254,7 +254,7 @@ void easyBot::main_form::startHealingBot_thread(Object^ sender, System::Componen
                     {
                         for (int spell2 = 0; spell2 < (int)healingSpells_ComboBox->Items->Count; ++spell2)
                         {
-                            if ((System::Convert::ToString(healing_Listbox->Items[i]->ToString()->Split('| ')[1]) == healingSpells_ComboBox->Items[spell2]->ToString()) && ((int)*(DWORD*)(skillCD + spell2 * 0x120)) == 1)
+                            if ((System::Convert::ToString(healing_Listbox->Items[i]->ToString()->Split('| ')[1]) == healingSpells_ComboBox->Items[spell2]->ToString()) && ((int)*(DWORD*)(skillCD + spell2 * 0x48)) == 0)
                             {
                                 monsterStatus = *(DWORD*)(monsterList + 0x04 * i);
                                 AttackMonster(monsterStatus, (spell2 + 1));

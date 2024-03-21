@@ -199,12 +199,12 @@ namespace easyBot
 
         DWORD itemCount = ReadPointer(0x003582C0, { 0x8, 0X4, 0X7C, 0X4, 0X568 });
 
-        DWORD myStats = ReadPointer(0x00369D1C, { 0x5B8, 0X4, 0X10, 0XDE0 });
+        DWORD myStats = ReadPointer(0x00369D1C, { 0x2E8, 0X4, 0X3C, 0XC00 });
 
         DWORD range = ReadPointer(0x004F4904, { 0x68 });
 
         DWORD skillCount = ReadPointer(0x004F4C70, { 0X3EC, 0X768 });
-        DWORD skillCD = ReadPointer(0x004F4CDC, { 0X170, 0XFB4 });
+        DWORD skillCD = ReadPointer(0x004F5160, { 0X44, 0X244, 0X664, 0XF0, 0XCCC });
 
 
     };

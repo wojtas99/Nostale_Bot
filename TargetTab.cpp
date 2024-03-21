@@ -378,7 +378,7 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
                                 {
                                     for (int spell2 = 0; spell2 < (int)targetSpell_ComboBox->Items->Count; ++spell2)
                                     {
-                                        if ((targetSpell_Listbox->Items[spell]->ToString() == targetSpell_ComboBox->Items[spell2]->ToString()) && ((int)*(DWORD*)(skillCD + spell2 * 0x120)) == 1)
+                                        if ((targetSpell_Listbox->Items[spell]->ToString() == targetSpell_ComboBox->Items[spell2]->ToString()) && ((int)*(DWORD*)(skillCD + spell2 * 0x48)) == 0)
                                         {
                                             AttackMonster(monsterStatus, (spell2 + 1));
                                             break;
@@ -412,7 +412,7 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
                                 {
                                     for (int spell2 = 0; spell2 < (int)targetSpell_ComboBox->Items->Count; ++spell2)
                                     {
-                                        if ((targetSpell_Listbox->Items[spell]->ToString() == targetSpell_ComboBox->Items[spell2]->ToString()) && ((int)*(DWORD*)(skillCD + spell2 * 0x120)) == 1)
+                                        if ((targetSpell_Listbox->Items[spell]->ToString() == targetSpell_ComboBox->Items[spell2]->ToString()) && ((int)*(DWORD*)(skillCD + spell2 * 0x48)) == 0)
                                         {
                                             AttackMonster(monsterStatus, (spell2 + 1));
                                             break;
@@ -442,7 +442,7 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
                         {
                             for (int spell2 = 0; spell2 < (int)targetSpell_ComboBox->Items->Count; ++spell2)
                             {
-                                if ((targetSpell_Listbox->Items[spell]->ToString() == targetSpell_ComboBox->Items[spell2]->ToString()) && ((int)*(DWORD*)(skillCD + spell2 * 0x120)) == 1)
+                                if ((targetSpell_Listbox->Items[spell]->ToString() == targetSpell_ComboBox->Items[spell2]->ToString()) && ((int)*(DWORD*)(skillCD + spell2 * 0x48)) == 0)
                                 {
                                     AttackMonster(monsterStatus, (spell2 + 1));
                                     break;
