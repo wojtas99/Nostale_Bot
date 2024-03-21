@@ -138,6 +138,10 @@ void easyBot::main_form::refreshItems(System::Object^ sender, System::EventArgs^
     bool found = 0;
     lootBlack_Listbox->Items->Clear();
     DWORD itemList;
+    DWORD itemListPointer;
+    int iterations = (int)*(DWORD*)itemCount;
+    if (iterations)
+        itemListPointer = ReadPointer(0x003566D8, { 0xEB0, 0X4, 0X5C4, 0X0 });
     for (int i = 0; i < (int)*(DWORD*)itemCount; ++i)
     {
         itemList = *(DWORD*)(*(DWORD*)(*(DWORD*)(itemListPointer + 0x04 * i) + 0xC4) + 0x38);
@@ -337,6 +341,7 @@ void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentMo
     double timer = 0;
 
     String^ itemName;
+    DWORD itemListPointer;
     while (!lootBot_Worker->CancellationPending)
     {
         if (state == 1)
@@ -345,6 +350,7 @@ void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentMo
             {
                 for (int item = 0; item < (int)*(DWORD*)itemCount; ++item)
                 {
+                    itemListPointer = ReadPointer(0x003566D8, { 0xEB0, 0X4, 0X5C4, 0X0 });
                     itemList = *(DWORD*)(itemListPointer + item * 0x04);
                     myX = *(short int*)myPosition;
                     myY = *(short int*)(myPosition + 0x2);
@@ -378,6 +384,7 @@ void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentMo
             {
                 for (int item = 0; item < (int)*(DWORD*)itemCount; ++item)
                 {
+                    itemListPointer = ReadPointer(0x003566D8, { 0xEB0, 0X4, 0X5C4, 0X0 });
                     itemList = *(DWORD*)(itemListPointer + item * 0x04);
                     myX = *(short int*)myPosition;
                     myY = *(short int*)(myPosition + 0x2);
@@ -418,6 +425,7 @@ void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentMo
             {
                 for (int item = 0; item < (int)*(DWORD*)itemCount; ++item)
                 {
+                    itemListPointer = ReadPointer(0x003566D8, { 0xEB0, 0X4, 0X5C4, 0X0 });
                     itemList = *(DWORD*)(itemListPointer + item * 0x04);
                     myX = *(short int*)myPosition;
                     myY = *(short int*)(myPosition + 0x2);

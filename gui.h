@@ -196,13 +196,12 @@ namespace easyBot
         DWORD monsterList = ReadPointer(0x003566D8, { 0xEA4, 0x4, 0X5E4, 0X0 });
 
         DWORD itemCount = ReadPointer(0x003582C0, { 0x8, 0X4, 0X7C, 0X4, 0X568 });
-        DWORD itemListPointer = ReadPointer(0x003566D8, { 0xEB0, 0X4, 0X5C4, 0X0 });
 
         DWORD myStats = ReadPointer(0x003566D8, { 0xEB0, 0X4, 0X5C4, 0X0 });
 
         DWORD range = ReadPointer(0x004F4904, { 0x68 });
 
-        DWORD skillList = ReadPointer(0x004F4CF0, { 0x388, 0XA8, 0X8, 0X14 });
+        DWORD skillList = ReadPointer(0x004F4DD0, { 0x158, 0X4, 0X4, 0X0, 0X8, 0X14 });
         DWORD skillCount = ReadPointer(0x004F4C70, { 0X3EC, 0X768 });
 
     };

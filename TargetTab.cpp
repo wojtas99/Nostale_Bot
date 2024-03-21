@@ -171,7 +171,7 @@ void easyBot::main_form::checkBox_CheckedChanged(System::Object^ sender, System:
 void easyBot::main_form::refreshSpell(System::Object^ sender, System::EventArgs^ e)
 {
     DWORD spell = skillList;
-    for(int i = 1; i < (int)*(DWORD*)skillCount - 1; ++i)
+    for(int i = 0; i < (int)*(DWORD*)skillCount - 1; ++i)
     {
         targetSpell_ComboBox->Items->Add(gcnew System::String((const char*)*(DWORD*)(spell + i*0x2A0)));
     }
