@@ -20,7 +20,7 @@ namespace easyBot
         main_form(void)
         {
         }
-        main_form(void(lpMoveTo)(uint32_t), void(lpAttackMonster)(uint32_t, short), void(lpRest)(void), void(lpCollect)(uint32_t))
+        main_form(void(lpMoveTo)(uint32_t), void(lpAttackMonster)(uint32_t, short), void(lpRest)(void), void(lpCollect)(uint32_t), void(lpMovePetPartner)(uint32_t, bool))
         {
             InitializeMainTab();
             InitializeTargetTab();
@@ -37,6 +37,7 @@ namespace easyBot
             this->moveTo = lpMoveTo;
             this->rest = lpRest;
             this->collect = lpCollect;
+            this->moveToPet = lpMovePetPartner;
             this->FormBorderStyle = System::Windows::Forms::FormBorderStyle::FixedDialog;
             this->MaximizeBox = false;
         }
@@ -56,6 +57,7 @@ namespace easyBot
         void(*moveTo)(uint32_t);
         void(*rest)(void);
         void(*collect)(uint32_t);
+        void(*moveToPet)(uint32_t, bool);
         void InitializeMainTab(void);
         void InitializeTargetTab(void);
         void InitializeHealingTab(void);
@@ -90,7 +92,7 @@ namespace easyBot
         void refreshSpell(System::Object^ sender, System::EventArgs^ e);
         void refreshHealingSkill(System::Object^ sender, System::EventArgs^ e);
         void addHealingSkill(System::Object^ sender, System::EventArgs^ e);
-        // Variables
+        // Main Tab
         System::ComponentModel::Container^ components;
         System::Windows::Forms::TabControl^ tabView;
         System::Windows::Forms::TabPage^ mainTab;
@@ -99,6 +101,8 @@ namespace easyBot
         System::ComponentModel::BackgroundWorker^ walkerBot_Worker;
         System::ComponentModel::BackgroundWorker^ healingBot_Worker;
         System::Windows::Forms::Button^ startBot_Button;
+        System::Windows::Forms::CheckBox^ moveAttackPet_CheckBox;
+        System::Windows::Forms::CheckBox^ moveAttackPartner_CheckBox;
         // Target & Skill Tab
         System::Windows::Forms::TabPage^ targetTab;
         System::Windows::Forms::GroupBox^ targetWhite_GroupBox;
@@ -199,7 +203,7 @@ namespace easyBot
 
         DWORD itemCount = ReadPointer(0x003582C0, { 0x8, 0X4, 0X7C, 0X4, 0X568 });
 
-        DWORD myStats = ReadPointer(0x00369D1C, { 0x2E8, 0X4, 0X3C, 0XC00 });
+        DWORD myStats = ReadPointer(0x00356158, { 0x18, 0XA34, 0XB10 });
 
         DWORD range = ReadPointer(0x004F4904, { 0x68 });
 

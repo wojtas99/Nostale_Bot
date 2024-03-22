@@ -193,6 +193,10 @@ void easyBot::main_form::startWalkerBot_thread(Object^ sender, System::Component
                 myX = *(short int*)myPosition;
                 myY = *(short int*)(myPosition + 0x02);
                 Sleep(250);
+                if(moveAttackPet_CheckBox->Checked)
+                    MovePetPartner(mapY * 65536 + mapX, 0);
+                if (moveAttackPartner_CheckBox->Checked)
+                    MovePetPartner(mapY * 65536 + mapX, 1);
                 MoveTo(mapY * 65536 + mapX);
                 timer = 0;
                 while (myX != mapX && myY != mapY && !walkerBot_Worker->CancellationPending)
@@ -201,6 +205,10 @@ void easyBot::main_form::startWalkerBot_thread(Object^ sender, System::Component
                     myY = *(short int*)(myPosition + 0x02);
                     if (timer > 0.5)
                     {
+                        if (moveAttackPartner_CheckBox->Checked)
+                            MovePetPartner(mapY * 65536 + mapX, 1);
+                        if (moveAttackPet_CheckBox->Checked)
+                            MovePetPartner(mapY * 65536 + mapX, 0);
                         MoveTo(mapY * 65536 + mapX);
                         timer = 0;
                     }

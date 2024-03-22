@@ -13,6 +13,8 @@ const BYTE COLLECT_THIS_PATTERN[] = { 0x58, 0x46, 0x8C, 0x00, 0xFC };
 
 const BYTE REST_PATTERN[] = { 0x55, 0x8B, 0xEC, 0xB9, 0x00, 0x00, 0x00, 0x00, 0x6A, 0x00, 0x6A, 0x00, 0x49, 0x75, 0x00, 0x51, 0x53, 0x56, 0x57, 0x33, 0xC0 };
 
+const BYTE MOVE_PET_PATTERN[] = { 0x55, 0X8B, 0XEC, 0X83, 0XC4,  0X00, 0X53, 0X56, 0X57, 0X8B, 0XF9, 0X89, 0X55, 0X00, 0X8B, 0XD8, 0XC6, 0X45 };
+
 LPCSTR MOVE_MASK = "xxxxx?xxxxx??xx";
 LPCSTR MOVE_THIS_MASK = "x??x?x";
 
@@ -24,6 +26,8 @@ LPCSTR COLLECT_THIS_MASK = "xxxxx";
 
 LPCSTR REST_MASK = "xxxx????x?x?xx?xxxxxx";
 
+LPCSTR MOVE_PET_MASK = "xxxxx?xxxxxxx?xxxx";
+
 LPVOID lpvMove;
 LPVOID lpvMoveThis;
 
@@ -33,10 +37,13 @@ LPVOID lpvAttackThis;
 LPVOID lpvCollect;
 LPVOID lpvCollectThis;
 
+LPVOID lpvMovePetPartner;
+
 LPVOID lpvRest;
 #pragma managed(push, off)
 void MoveTo(uint32_t waypoint)
 {
+    
     _asm
     {
         PUSH 01
@@ -47,7 +54,35 @@ void MoveTo(uint32_t waypoint)
         CALL lpvMove
     }
 }
-
+void MovePetPartner(uint32_t waypoint, bool moveOption)
+{
+    if (moveOption) // 1 - Partner move || 0 - Pet move
+    {
+        DWORD partner = *(DWORD*)ReadPointer(0x004F4F04, { 0x118, 0x4, 0x38, 0x168 });
+        _asm
+        {
+            PUSH 01
+            PUSH 01
+            XOR ECX, ECX
+            MOV EDX, waypoint
+            MOV EAX, partner
+            call lpvMovePetPartner
+        }
+    }
+    else
+    {
+        DWORD pet = *(DWORD*)ReadPointer(0x004F4F04, { 0x118, 0x4, 0x38, 0x16C });
+        _asm
+        {
+            PUSH 01
+            PUSH 01
+            XOR ECX, ECX
+            MOV EDX, waypoint
+            MOV EAX, pet
+            call lpvMovePetPartner
+        }
+    }
+}
 void AttackMonster(uint32_t monster, short skill)
 {
     _asm
@@ -103,7 +138,8 @@ BOOL FindAddresses()
 
     lpvCollectThis = (LPVOID)0x00765EA8;
 
+    lpvMovePetPartner = FindPattern(MOVE_PET_PATTERN, MOVE_PET_MASK);
 
-    return lpvMove && lpvMoveThis && lpvAttack && lpvAttackThis && lpvCollect && lpvCollectThis;
+    return lpvMove && lpvMoveThis && lpvAttack && lpvAttackThis && lpvCollect && lpvCollectThis && lpvMovePetPartner;
 }
 

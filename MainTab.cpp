@@ -40,7 +40,18 @@ void easyBot::main_form::InitializeMainTab(void)
     startBot_Button->Text = "Start Bot";
     startBot_Button->BackColor = Color::Red;
     startBot_Button->Click += gcnew EventHandler(this, &main_form::startBot);
+    //######################  CheckBoxes  ########################
+    moveAttackPet_CheckBox = gcnew System::Windows::Forms::CheckBox();
+    moveAttackPet_CheckBox->Location = Point(0, 52);
+    moveAttackPet_CheckBox->Text = "Move Pet";
+    moveAttackPet_CheckBox->Width = 110;
+    moveAttackPartner_CheckBox = gcnew System::Windows::Forms::CheckBox();
+    moveAttackPartner_CheckBox->Location = Point(0, 82);
+    moveAttackPartner_CheckBox->Text = "Move Partner";
+    moveAttackPartner_CheckBox->Width = 110;
     mainTab->Controls->Add(startBot_Button);
+    mainTab->Controls->Add(moveAttackPet_CheckBox);
+    mainTab->Controls->Add(moveAttackPartner_CheckBox);
 }
 
 void easyBot::main_form::ListFilesInFolder(const std::wstring& folderPath) {
