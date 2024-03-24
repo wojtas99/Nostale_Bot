@@ -43,11 +43,11 @@ void easyBot::main_form::InitializeMainTab(void)
     //######################  CheckBoxes  ########################
     moveAttackPet_CheckBox = gcnew System::Windows::Forms::CheckBox();
     moveAttackPet_CheckBox->Location = Point(0, 52);
-    moveAttackPet_CheckBox->Text = "Move Pet";
+    moveAttackPet_CheckBox->Text = "Move&&Attack Pet";
     moveAttackPet_CheckBox->Width = 110;
     moveAttackPartner_CheckBox = gcnew System::Windows::Forms::CheckBox();
     moveAttackPartner_CheckBox->Location = Point(0, 82);
-    moveAttackPartner_CheckBox->Text = "Move Partner";
+    moveAttackPartner_CheckBox->Text = "Move&&Attack Partner";
     moveAttackPartner_CheckBox->Width = 110;
     mainTab->Controls->Add(startBot_Button);
     mainTab->Controls->Add(moveAttackPet_CheckBox);

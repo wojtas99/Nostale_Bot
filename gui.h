@@ -20,7 +20,7 @@ namespace easyBot
         main_form(void)
         {
         }
-        main_form(void(lpMoveTo)(uint32_t), void(lpAttackMonster)(uint32_t, short), void(lpRest)(void), void(lpCollect)(uint32_t), void(lpMovePetPartner)(uint32_t, bool))
+        main_form(void(lpMoveTo)(uint32_t), void(lpAttackMonster)(uint32_t, short), void(lpRest)(void), void(lpCollect)(uint32_t), void(lpMovePetPartner)(uint32_t, bool), void(lpAttackMonsterPet)(uint32_t, bool))
         {
             InitializeMainTab();
             InitializeTargetTab();
@@ -38,6 +38,7 @@ namespace easyBot
             this->rest = lpRest;
             this->collect = lpCollect;
             this->moveToPet = lpMovePetPartner;
+            this->attackMonsterPet = lpAttackMonsterPet;
             this->FormBorderStyle = System::Windows::Forms::FormBorderStyle::FixedDialog;
             this->MaximizeBox = false;
         }
@@ -58,6 +59,7 @@ namespace easyBot
         void(*rest)(void);
         void(*collect)(uint32_t);
         void(*moveToPet)(uint32_t, bool);
+        void(*attackMonsterPet)(uint32_t, bool);
         void InitializeMainTab(void);
         void InitializeTargetTab(void);
         void InitializeHealingTab(void);
@@ -208,7 +210,7 @@ namespace easyBot
         DWORD range = ReadPointer(0x004F4904, { 0x68 });
 
         DWORD skillCount = ReadPointer(0x004F4C70, { 0X3EC, 0X768 });
-        DWORD skillCD = ReadPointer(0x004F5160, { 0X44, 0X244, 0X664, 0XF0, 0XCCC });
+        DWORD skillCD = ReadPointer(0x004F4DD0, { 0X158, 0X4, 0X4, 0X0, 0X24 });
 
 
     };

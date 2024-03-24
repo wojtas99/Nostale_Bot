@@ -15,6 +15,8 @@ const BYTE REST_PATTERN[] = { 0x55, 0x8B, 0xEC, 0xB9, 0x00, 0x00, 0x00, 0x00, 0x
 
 const BYTE MOVE_PET_PATTERN[] = { 0x55, 0X8B, 0XEC, 0X83, 0XC4,  0X00, 0X53, 0X56, 0X57, 0X8B, 0XF9, 0X89, 0X55, 0X00, 0X8B, 0XD8, 0XC6, 0X45 };
 
+const BYTE ATTACK_PET_PATTERN[] = { 0x53, 0X56, 0X8B, 0XF2, 0X8B,  0XD8, 0X8B, 0XC3, 0XE8, 0X00, 0X00, 0X00, 0X00, 0X84, 0XC0, 0X74, 0X00, 0X83, 0XBB };
+
 LPCSTR MOVE_MASK = "xxxxx?xxxxx??xx";
 LPCSTR MOVE_THIS_MASK = "x??x?x";
 
@@ -28,6 +30,8 @@ LPCSTR REST_MASK = "xxxx????x?x?xx?xxxxxx";
 
 LPCSTR MOVE_PET_MASK = "xxxxx?xxxxxxx?xxxx";
 
+LPCSTR ATTACK_PET_MASK = "xxxxxxxxx????xxx?xx";
+
 LPVOID lpvMove;
 LPVOID lpvMoveThis;
 
@@ -38,6 +42,7 @@ LPVOID lpvCollect;
 LPVOID lpvCollectThis;
 
 LPVOID lpvMovePetPartner;
+LPVOID lpvAttackPetPartner;
 
 LPVOID lpvRest;
 #pragma managed(push, off)
@@ -58,7 +63,7 @@ void MovePetPartner(uint32_t waypoint, bool moveOption)
 {
     if (moveOption) // 1 - Partner move || 0 - Pet move
     {
-        DWORD partner = *(DWORD*)ReadPointer(0x004F4F04, { 0x118, 0x4, 0x38, 0x168 });
+        DWORD partner = *(DWORD*)ReadPointer(0x004F4908, { 0x4, 0x0 });
         _asm
         {
             PUSH 01
@@ -71,7 +76,7 @@ void MovePetPartner(uint32_t waypoint, bool moveOption)
     }
     else
     {
-        DWORD pet = *(DWORD*)ReadPointer(0x004F4F04, { 0x118, 0x4, 0x38, 0x16C });
+        DWORD pet = *(DWORD*)ReadPointer(0x004F4908, { 0x4, 0x4 });
         _asm
         {
             PUSH 01
@@ -92,6 +97,29 @@ void AttackMonster(uint32_t monster, short skill)
         MOV EAX, [lpvAttackThis]
         MOV EAX, [EAX]
         CALL lpvAttack
+    }
+}
+void AttackMonsterPetPartner(uint32_t monster, bool attackOptioon)
+{
+    if (attackOptioon) // 1 - Partner attack || 0 - Pet attack
+    {
+        DWORD partner = *(DWORD*)ReadPointer(0x004F4908, { 0x4, 0x0 });
+        _asm
+        {
+            MOV EDX, monster
+            MOV EAX, partner
+            call lpvAttackPetPartner
+        }
+    }
+    else
+    {
+        DWORD pet = *(DWORD*)ReadPointer(0x004F4908, { 0x4, 0x4 });
+        _asm
+        {
+            MOV EDX, monster
+            MOV EAX, pet
+            call lpvAttackPetPartner
+        }
     }
 }
 void Rest(void)
@@ -140,6 +168,8 @@ BOOL FindAddresses()
 
     lpvMovePetPartner = FindPattern(MOVE_PET_PATTERN, MOVE_PET_MASK);
 
-    return lpvMove && lpvMoveThis && lpvAttack && lpvAttackThis && lpvCollect && lpvCollectThis && lpvMovePetPartner;
+    lpvAttackPetPartner = FindPattern(ATTACK_PET_PATTERN, ATTACK_PET_MASK);
+
+    return lpvMove && lpvMoveThis && lpvAttack && lpvAttackThis && lpvCollect && lpvCollectThis && lpvMovePetPartner && lpvAttackPetPartner;
 }
 

@@ -11,7 +11,7 @@ int GuiMain()
 	StartBot();
 	easyBot::Application::EnableVisualStyles();
 	easyBot::Application::SetCompatibleTextRenderingDefault(false);
-	easyBot::Application::Run(gcnew easyBot::main_form(MoveTo, AttackMonster, Rest, Collect, MovePetPartner));
+	easyBot::Application::Run(gcnew easyBot::main_form(MoveTo, AttackMonster, Rest, Collect, MovePetPartner, AttackMonsterPetPartner));
 	HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, GetCurrentProcessId());
 	TerminateProcess(hProcess, 0);
 	CloseHandle(hProcess);

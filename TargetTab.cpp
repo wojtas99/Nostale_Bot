@@ -374,6 +374,10 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
                                 myY = *(short int*)(myPosition + 0x2);
                                 entityX = *(short int*)(monsterStatus + 0x0C);
                                 entityY = *(short int*)(monsterStatus + 0x0E);
+                                if (moveAttackPartner_CheckBox->Checked)
+                                    AttackMonsterPetPartner(monsterStatus, 1);
+                                if (moveAttackPet_CheckBox->Checked)
+                                    AttackMonsterPetPartner(monsterStatus, 0);
                                 for (int spell = 0; spell < (int)targetSpell_Listbox->Items->Count; ++spell)
                                 {
                                     for (int spell2 = 0; spell2 < (int)targetSpell_ComboBox->Items->Count; ++spell2)
@@ -408,6 +412,10 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
                                 myY = *(short int*)(myPosition + 0x2);
                                 entityX = *(short int*)(monsterStatus + 0x0C);
                                 entityY = *(short int*)(monsterStatus + 0x0E);
+                                if (moveAttackPartner_CheckBox->Checked)
+                                    AttackMonsterPetPartner(monsterStatus, 1);
+                                if (moveAttackPet_CheckBox->Checked)
+                                    AttackMonsterPetPartner(monsterStatus, 0);
                                 for (int spell = 0; spell < (int)targetSpell_Listbox->Items->Count; ++spell)
                                 {
                                     for (int spell2 = 0; spell2 < (int)targetSpell_ComboBox->Items->Count; ++spell2)
@@ -438,6 +446,10 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
                         myY = *(short int*)(myPosition + 0x2);
                         entityX = *(short int*)(monsterStatus + 0x0C);
                         entityY = *(short int*)(monsterStatus + 0x0E);
+                        if (moveAttackPartner_CheckBox->Checked)
+                            AttackMonsterPetPartner(monsterStatus, 1);
+                        if (moveAttackPet_CheckBox->Checked)
+                            AttackMonsterPetPartner(monsterStatus, 0);
                         for (int spell = 0; spell < (int)targetSpell_Listbox->Items->Count; ++spell)
                         {
                             for (int spell2 = 0; spell2 < (int)targetSpell_ComboBox->Items->Count; ++spell2)
