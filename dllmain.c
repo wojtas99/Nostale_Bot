@@ -5,7 +5,6 @@ extern int GuiMain();
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD fdwReason, LPVOID lpvReserved);
 DWORD WINAPI HackThread(LPVOID lpParameter);
-
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD  fdwReason, LPVOID lpvReserved)
 {
     switch (fdwReason)
@@ -25,5 +24,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  fdwReason, LPVOID lpvReserved)
 
 DWORD WINAPI HackThread(LPVOID lpParameter)
 {
+
     FreeLibraryAndExitThread((HMODULE)lpParameter, GuiMain());
 }

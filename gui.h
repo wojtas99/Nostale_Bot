@@ -52,7 +52,7 @@ namespace easyBot
     private:
         // Global Variables
         unsigned int waypoint = 0;
-        unsigned int state = 0; // 0 - Attack, 1 - Loot, 2 - Walk
+        unsigned int state = 0; // 0 - Walk, 1 - Attack, 2 - Loot
         // Functions
         void(*attackMonster)(uint32_t, short);
         void(*moveTo)(uint32_t);
@@ -91,8 +91,6 @@ namespace easyBot
         void saveTarget(System::Object^ sender, System::EventArgs^ e);
         void loadTarget(System::Object^ sender, System::EventArgs^ e);
         void deleteWaypoint(System::Object^ sender, System::EventArgs^ e);
-        void refreshSpell(System::Object^ sender, System::EventArgs^ e);
-        void refreshHealingSkill(System::Object^ sender, System::EventArgs^ e);
         void addHealingSkill(System::Object^ sender, System::EventArgs^ e);
         // Main Tab
         System::ComponentModel::Container^ components;
@@ -118,7 +116,7 @@ namespace easyBot
         System::Windows::Forms::ComboBox^ targetSpell_ComboBox;
         System::Windows::Forms::Button^ refreshTarget_Button;
         System::Windows::Forms::Button^ addSpell_Button;
-        System::Windows::Forms::Button^ refreshSpell_Button;
+        //System::Windows::Forms::Button^ refreshSpell_Button;
         System::Windows::Forms::Button^ loadTarget_Button;
         System::Windows::Forms::Button^ saveTarget_Button;
         System::Windows::Forms::TextBox^ saveTarget_TextBox;
@@ -198,9 +196,10 @@ namespace easyBot
         System::Windows::Forms::CheckBox^ lootEverything_CheckBox;
 
         // Pointers
+        /*
         DWORD myPosition = ReadPointer(0x004F4904, { 0x20, 0x0C});
 
-        DWORD monsterCount = ReadPointer(0x003582C0, { 0x8, 0x4, 0X60, 0X4, 0X608 });
+        DWORD monsterCountPointer = ReadPointer(0x003582C0, { 0x8, 0x4, 0X60, 0X4, 0X608 });
         DWORD monsterList = ReadPointer(0x003566D8, { 0xEA4, 0x4, 0X5E4, 0X0 });
 
         DWORD itemCount = ReadPointer(0x003582C0, { 0x8, 0X4, 0X7C, 0X4, 0X568 });
@@ -211,6 +210,9 @@ namespace easyBot
 
         DWORD skillCount = ReadPointer(0x004F4C70, { 0X3EC, 0X768 });
         DWORD skillCD = ReadPointer(0x004F4DD0, { 0X158, 0X4, 0X4, 0X0, 0X24 });
+
+        DWORD itemListPointer = ReadPointer(0x003566D8, { 0xEB0, 0X4, 0X5C4, 0X0 });
+        */
 
 
     };

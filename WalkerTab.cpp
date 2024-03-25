@@ -117,14 +117,17 @@ void easyBot::main_form::InitializeWalkerTab(void)
     waypointTab->Controls->Add(saveWalker_GroupBox);
     waypointTab->Controls->Add(currentStatus_GroupBox);
 }
+
+
 void easyBot::main_form::deleteWaypoint(System::Object^ sender, System::EventArgs^ e)
 {
-    bool found = 0;
     if (walker_Listbox->SelectedItem != nullptr)
     {
         walker_Listbox->Items->Remove(walker_Listbox->SelectedItem);
     }
 }
+
+
 void easyBot::main_form::saveWalker(System::Object^ sender, System::EventArgs^ e)
 {
     if (saveWalker_TextBox->Text != "")
@@ -139,6 +142,8 @@ void easyBot::main_form::saveWalker(System::Object^ sender, System::EventArgs^ e
         saveWpt.close();
     }
 }
+
+
 void easyBot::main_form::loadWalker(System::Object^ sender, System::EventArgs^ e)
 {
     if (saveWalker_TextBox->Text != "")
@@ -166,8 +171,11 @@ void easyBot::main_form::loadWalker(System::Object^ sender, System::EventArgs^ e
         waypoint = 0;
     }
 }
+
+
 void easyBot::main_form::addWaypoint(System::Object^ sender, System::EventArgs^ e)
 {
+    DWORD myPosition = ReadPointer(0x004F4904, { 0x20, 0x0C });
     short int myX = (short int)*(short int*)myPosition;
     short int myY = (short int)*(short int*)(myPosition + 0x02);
     if (*(uint32_t*)myPosition != 0)
@@ -177,33 +185,32 @@ void easyBot::main_form::addWaypoint(System::Object^ sender, System::EventArgs^ 
 void easyBot::main_form::startWalkerBot_thread(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e)
 {
     double timer = 0;
+
     short int myX;
     short int myY;
+
     short int mapY;
     short int mapX;
+
+    DWORD myPosition;
+    myPosition = ReadPointer(0x004F4904, { 0x20, 0x0C });
     while (!walkerBot_Worker->CancellationPending)
     {
-        if (state == 2)
+        if (state == 0)
         {
             if ((int)walker_Listbox->Items->Count > 0)
             {
                 walker_Listbox->SetSelected(waypoint, TRUE);
+
                 mapX = System::Convert::ToInt32(walker_Listbox->Items[waypoint]->ToString()->Split('Y')[0]->Substring(3));
                 mapY = System::Convert::ToInt32(walker_Listbox->Items[waypoint]->ToString()->Split('Y')[1]->Substring(2));
                 myX = *(short int*)myPosition;
                 myY = *(short int*)(myPosition + 0x02);
-                Sleep(250);
-                if(moveAttackPet_CheckBox->Checked)
-                    MovePetPartner(mapY * 65536 + mapX, 0);
-                if (moveAttackPartner_CheckBox->Checked)
-                    MovePetPartner(mapY * 65536 + mapX, 1);
-                MoveTo(mapY * 65536 + mapX);
-                timer = 0;
-                while (myX != mapX && myY != mapY && !walkerBot_Worker->CancellationPending)
+                while (myX != mapX && myY != mapY)
                 {
                     myX = *(short int*)myPosition;
                     myY = *(short int*)(myPosition + 0x02);
-                    if (timer > 0.5)
+                    if (timer > 0.3)
                     {
                         if (moveAttackPartner_CheckBox->Checked)
                             MovePetPartner(mapY * 65536 + mapX, 1);
@@ -212,28 +219,20 @@ void easyBot::main_form::startWalkerBot_thread(Object^ sender, System::Component
                         MoveTo(mapY * 65536 + mapX);
                         timer = 0;
                     }
-                    timer += 0.05;
-                    Sleep(50);
+                    timer += 0.01;
+                    Sleep(10);
                 }
-                if (myX == mapX && myY == mapY)
+                if (waypoint < (unsigned int)walker_Listbox->Items->Count - 1)
                 {
-                    timer = 0;
-                    if (waypoint < (unsigned int)walker_Listbox->Items->Count - 1)
-                    {
-                        ++waypoint;
-                    }
-                    else
-                    {
-                        waypoint = 0;
-                    }
-                    state = 0;
+                    ++waypoint;
                 }
-            }
-            else
-            {
-                state = 0;
+                else
+                {
+                    waypoint = 0;
+                }
+                state = 1;
             }
         }
-        Sleep(50);
+        Sleep(10);
     }
 }

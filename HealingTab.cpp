@@ -82,7 +82,6 @@ void easyBot::main_form::InitializeHealingTab(void)
     refreshHealingSpells_Button->Location = Point(186, 17);
     refreshHealingSpells_Button->Size = System::Drawing::Size(82, 23);
     refreshHealingSpells_Button->Text = "Refresh";
-    refreshHealingSpells_Button->Click += gcnew EventHandler(this, &main_form::refreshHealingSkill);
 
     addHealingSpell_Button = gcnew System::Windows::Forms::Button();
     addHealingSpell_Button->Location = Point(138, 17);
@@ -198,27 +197,21 @@ void easyBot::main_form::InitializeHealingTab(void)
     healingTab->Controls->Add(saveHealing_GroupBox);
     healingTab->Controls->Add(myHealth_GroupBox);
 }
-//###################### Refresh healing Skill ######################
-void easyBot::main_form::refreshHealingSkill(System::Object^ sender, System::EventArgs^ e)
-{
-    healingSpells_ComboBox->Items->Clear();
-    DWORD skillList = ReadPointer(0x004F4DD0, { 0x158, 0X4, 0X4, 0X0, 0X8, 0X14 });
-    DWORD spell = skillList;
-    for (int i = 0; i < (int)*(DWORD*)skillCount - 1; ++i)
-    {
-        healingSpells_ComboBox->Items->Add(gcnew System::String((const char*)*(DWORD*)(spell + i * 0x2A0)));
-    }
-    healingSpells_ComboBox->SelectedIndex = 0;
-}
 //###################### Start Healer ######################
 void easyBot::main_form::startHealingBot_thread(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e)
 {
+    DWORD myStats = ReadPointer(0x004F4BA8, { 0xE4, 0X100, 0X4C8, 0x8B8 });
     string healName;
     DWORD myMAXMP = myStats;
     DWORD myMP = myStats + 0x4;
     DWORD myMAXHP = myStats + 0xF0;
     DWORD myHP = myStats + 0xF4;
-    DWORD monsterStatus;
+    HWND game = FindWindow(NULL, L"Nostale");
+    DWORD PID;
+    GetWindowThreadProcessId(game, &PID);
+    std::wstring title = L"Nostale " + std::to_wstring(PID);
+    SetWindowText(game, title.c_str());
+    game = FindWindow(NULL, title.c_str());
 
     while (!healingBot_Worker->CancellationPending)
     {
@@ -228,67 +221,26 @@ void easyBot::main_form::startHealingBot_thread(Object^ sender, System::Componen
         myMana_ProgressBar->Value = (int)*(DWORD*)myMP;
         for (int i = 0; i < (int)healing_Listbox->Items->Count; ++i)
         {
-            if (healing_Listbox->Items[i]->ToString()->Contains("|"))
+            if (System::Convert::ToString(healing_Listbox->Items[i]->ToString()->Split('%')[0]) == "MP")
             {
-                if (System::Convert::ToString(healing_Listbox->Items[i]->ToString()->Split('%')[0]) == "MP")
+                if ((int)*(DWORD*)myMP <= ((int)*(DWORD*)myMAXMP * System::Convert::ToInt32(healing_Listbox->Items[i]->ToString()->Split('%')[1]) * 0.01) &&
+                    (int)*(DWORD*)myMP >= ((int)*(DWORD*)myMAXMP * System::Convert::ToInt32(healing_Listbox->Items[i]->ToString()->Split('%')[2]->Substring(1)) * 0.01))
                 {
-                    if ((int)*(DWORD*)myMP <= ((int)*(DWORD*)myMAXMP * System::Convert::ToInt32(healing_Listbox->Items[i]->ToString()->Split('%')[1]) * 0.01) &&
-                        (int)*(DWORD*)myMP >= ((int)*(DWORD*)myMAXMP * System::Convert::ToInt32(healing_Listbox->Items[i]->ToString()->Split('%')[2]->Substring(1)) * 0.01))
-                    {
-                        for (int spell2 = 0; spell2 < (int)healingSpells_ComboBox->Items->Count; ++spell2)
-                        {
-                            if ((System::Convert::ToString(healing_Listbox->Items[i]->ToString()->Split('| ')[1]) == healingSpells_ComboBox->Items[spell2]->ToString()) && ((int)*(DWORD*)(skillCD + spell2 * 0x120)) == 1)
-                            {
-                                monsterStatus = *(DWORD*)(monsterList + 0x04 * i);
-                                AttackMonster(monsterStatus, (spell2 + 1));
-                                Sleep(500);
-                                break;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    if ((int)*(DWORD*)myHP <= ((int)*(DWORD*)myMAXHP * System::Convert::ToInt32(healing_Listbox->Items[i]->ToString()->Split('%')[1]) * 0.01) &&
-                        (int)*(DWORD*)myHP >= ((int)*(DWORD*)myMAXHP * System::Convert::ToInt32(healing_Listbox->Items[i]->ToString()->Split('%')[2]->Substring(1)) * 0.01))
-                    {
-                        for (int spell2 = 0; spell2 < (int)healingSpells_ComboBox->Items->Count; ++spell2)
-                        {
-                            if ((System::Convert::ToString(healing_Listbox->Items[i]->ToString()->Split('| ')[1]) == healingSpells_ComboBox->Items[spell2]->ToString()) && ((int)*(DWORD*)(skillCD + spell2 * 0x48)) == 0)
-                            {
-                                monsterStatus = *(DWORD*)(monsterList + 0x04 * i);
-                                AttackMonster(monsterStatus, (spell2 + 1));
-                                Sleep(500);
-                                break;
-                            }
-                        }
-                    }
+                    SendMessage(game, WM_KEYDOWN, 0x31, 0x20001);
+                    SendMessage(game, WM_KEYUP, 0x31, 0xC0020001);
+                    Sleep(500);
                 }
             }
             else
             {
-                if (System::Convert::ToString(healing_Listbox->Items[i]->ToString()->Split('%')[0]) == "MP")
+                if ((int)*(DWORD*)myHP <= ((int)*(DWORD*)myMAXHP * System::Convert::ToInt32(healing_Listbox->Items[i]->ToString()->Split('%')[1]) * 0.01) &&
+                    (int)*(DWORD*)myHP >= ((int)*(DWORD*)myMAXHP * System::Convert::ToInt32(healing_Listbox->Items[i]->ToString()->Split('%')[2]->Substring(1)) * 0.01))
                 {
-                    if ((int)*(DWORD*)myMP <= ((int)*(DWORD*)myMAXMP * System::Convert::ToInt32(healing_Listbox->Items[i]->ToString()->Split('%')[1]) * 0.01) &&
-                        (int)*(DWORD*)myMP >= ((int)*(DWORD*)myMAXMP * System::Convert::ToInt32(healing_Listbox->Items[i]->ToString()->Split('%')[2]->Substring(1)) * 0.01))
-                    {
-                        SendMessage(FindWindow(NULL, L"Nostale"), WM_KEYDOWN, 0x31, 0x20001);
-                        SendMessage(FindWindow(NULL, L"Nostale"), WM_KEYUP, 0x31, 0xC0020001);
-                        Sleep(500);
-                    }
-                }
-                else
-                {
-                    if ((int)*(DWORD*)myHP <= ((int)*(DWORD*)myMAXHP * System::Convert::ToInt32(healing_Listbox->Items[i]->ToString()->Split('%')[1]) * 0.01) &&
-                        (int)*(DWORD*)myHP >= ((int)*(DWORD*)myMAXHP * System::Convert::ToInt32(healing_Listbox->Items[i]->ToString()->Split('%')[2]->Substring(1)) * 0.01))
-                    {
-                        SendMessage(FindWindow(NULL, L"Nostale"), WM_KEYDOWN, 0x32, 0x20001);
-                        SendMessage(FindWindow(NULL, L"Nostale"), WM_KEYUP, 0x32, 0xC0020001);
-                        Sleep(500);
-                    }
+                    SendMessage(game, WM_KEYDOWN, 0x32, 0x20001);
+                    SendMessage(game, WM_KEYUP, 0x32, 0xC0020001);
+                    Sleep(500);
                 }
             }
-            Sleep(500);
         }
         Sleep(500);
     }

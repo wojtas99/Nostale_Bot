@@ -29,6 +29,11 @@ void easyBot::main_form::InitializeTargetTab(void)
     targetSpell_ComboBox->Location = Point(120, 20);
     targetSpell_ComboBox->Size = System::Drawing::Size(65, 21);
     targetSpell_ComboBox->DropDownStyle = ComboBoxStyle::DropDownList;
+    for (int i = 1; i < 11; ++i)
+    {
+        targetSpell_ComboBox->Items->Add(i);
+    }
+    targetSpell_ComboBox->SelectedIndex = 0;
     //######################     ListBoxes     ######################
     targetWhite_Listbox = gcnew System::Windows::Forms::ListBox();
     targetWhite_Listbox->Size = System::Drawing::Size(207, 134);
@@ -55,12 +60,6 @@ void easyBot::main_form::InitializeTargetTab(void)
     addSpell_Button->Size = System::Drawing::Size(75, 24);
     addSpell_Button->Text = "Add Spell";
     addSpell_Button->Click += gcnew EventHandler(this, &main_form::addSpell);
-
-    refreshSpell_Button = gcnew System::Windows::Forms::Button();
-    refreshSpell_Button->Location = Point(10, 110);
-    refreshSpell_Button->Size = System::Drawing::Size(75, 24);
-    refreshSpell_Button->Text = "Refresh Spell";
-    refreshSpell_Button->Click += gcnew EventHandler(this, &main_form::refreshSpell);
 
     refreshTarget_Button = gcnew System::Windows::Forms::Button();
     refreshTarget_Button->Location = Point(120, 49);
@@ -119,7 +118,6 @@ void easyBot::main_form::InitializeTargetTab(void)
     targetSpell_GroupBox->Controls->Add(targetSpell_Listbox);
     targetSpell_GroupBox->Controls->Add(targetSpell_ComboBox);
     targetSpell_GroupBox->Controls->Add(addSpell_Button);
-    targetSpell_GroupBox->Controls->Add(refreshSpell_Button);
     targetSpell_GroupBox->Controls->Add(refreshTarget_Button);
     targetSpell_GroupBox->Controls->Add(attackWhite_CheckBox);
     targetSpell_GroupBox->Controls->Add(attackBlack_CheckBox);
@@ -168,22 +166,13 @@ void easyBot::main_form::checkBox_CheckedChanged(System::Object^ sender, System:
         attackEverything_CheckBox->Enabled = true;
     }
 }
-void easyBot::main_form::refreshSpell(System::Object^ sender, System::EventArgs^ e)
-{
-    targetSpell_ComboBox->Items->Clear();
-    DWORD skillList = ReadPointer(0x004F4DD0, { 0x158, 0X4, 0X4, 0X0, 0X8, 0X14 });
-    DWORD spell = skillList;
-    for(int i = 0; i < (int)*(DWORD*)skillCount - 1; ++i)
-    {
-        targetSpell_ComboBox->Items->Add(gcnew System::String((const char*)*(DWORD*)(spell + i*0x2A0)));
-    }
-    targetSpell_ComboBox->SelectedIndex = 0;
-}
+
 void easyBot::main_form::addSpell(System::Object^ sender, System::EventArgs^ e)
 {
     if (targetSpell_ComboBox->SelectedItem != nullptr)
         targetSpell_Listbox->Items->Add(targetSpell_ComboBox->SelectedItem->ToString());
 }
+
 
 void easyBot::main_form::addMonsterToWhiteList(System::Object^ sender, System::EventArgs^ e)
 {
@@ -205,6 +194,8 @@ void easyBot::main_form::addMonsterToWhiteList(System::Object^ sender, System::E
         found = 0;
     }
 }
+
+
 void easyBot::main_form::addMonsterToBlackList(System::Object^ sender, System::EventArgs^ e)
 {
     bool found = 0;
@@ -225,6 +216,8 @@ void easyBot::main_form::addMonsterToBlackList(System::Object^ sender, System::E
         found = 0;
     }
 }
+
+
 void easyBot::main_form::saveTarget(System::Object^ sender, System::EventArgs^ e)
 {
     if (saveTarget_TextBox->Text != "")
@@ -249,6 +242,8 @@ void easyBot::main_form::saveTarget(System::Object^ sender, System::EventArgs^ e
         save.close();
     }
 }
+
+
 void easyBot::main_form::loadTarget(System::Object^ sender, System::EventArgs^ e)
 {
     bool addToBlack = 0;
@@ -301,15 +296,18 @@ void easyBot::main_form::loadTarget(System::Object^ sender, System::EventArgs^ e
         }
     }
 }
+
+
 void easyBot::main_form::refreshMonsters(System::Object^ sender, System::EventArgs^ e)
 {
     targetBlack_Listbox->Items->Clear();
-    targetWhite_Listbox->Items->Clear();
     bool found = 0;
     DWORD monster;
-    for (int i = 0; i < (int)*(DWORD*)monsterCount; ++i)
+    int monsterCount = (int)*(uint32_t*)ReadPointer(0x003582C0, { 0x8, 0x4, 0X60, 0X4, 0X608 }) - 1;
+    for (int i = 0; i < monsterCount; ++i)
     {
-        monster = *(DWORD*)(*(DWORD*)(*(DWORD*)(monsterList + 0x04 * i) + 0x1BC) + 0x04);
+        monster = ReadPointer(0x003566D8, { 0xEA4, 0x4, 0X5E4, 0X0 });
+        monster = *(DWORD*)(*(DWORD*)(*(DWORD*)(monster + 0x04 * i) + 0x1BC) + 0x04);
         for (int tmp = 0; tmp < (int)targetBlack_Listbox->Items->Count; ++tmp)
         {
             if (gcnew System::String((const char*)monster) == (targetBlack_Listbox->Items[tmp]->ToString()))
@@ -339,7 +337,9 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
     string monsterName;
 
     DWORD monsterStatus;
-    int attackRange = ((int)*(BYTE*)range) - 2;
+    DWORD monsterList;
+
+    int attackRange = ((int)*(BYTE*)ReadPointer(0x004F4904, { 0x68 })) - 2;
 
     short int myX;
     short int myY;
@@ -349,52 +349,20 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
 
     double timer = 0;
 
+    int monsterCount = 0;
+
+    DWORD myPosition;
+
     while (!targetBot_Worker->CancellationPending)
     {
-        if (state == 0)
-        {
-            for (unsigned int i = 0; i < ((unsigned int)*(uint32_t*)monsterCount) - 1; ++i)
+        if (state == 1)
+        {;
+            for (int i = 0; i < *(int*)ReadPointer(0x003582C0, { 0x8, 0x4, 0X60, 0X4, 0X608 }) - 1; ++i)
             {
+                monsterList = ReadPointer(0x003566D8, { 0xEA4, 0x4, 0X5E4, 0X0 });
                 monsterStatus = *(DWORD*)(monsterList + 0x04 * i);
                 monsterName = (string)(const char*)*(DWORD*)(*(DWORD*)(monsterStatus + 0x1BC) + 0x04);
-                if (attackBlack_CheckBox->Checked)
-                {
-                    for (int monsterAttack = 0; monsterAttack < (int)targetBlack_Listbox->Items->Count; ++monsterAttack)
-                    {
-                        if (monsterName == msclr::interop::marshal_as<std::string>(targetBlack_Listbox->Items[monsterAttack]->ToString()))
-                        {
-                            myX = *(short int*)myPosition;
-                            myY = *(short int*)(myPosition + 0x2);
-                            entityX = *(short int*)(monsterStatus + 0x0C);
-                            entityY = *(short int*)(monsterStatus + 0x0E);
-                            while (abs(myX - entityX) < attackRange && abs(myY - entityY) < attackRange && !targetBot_Worker->CancellationPending && *(uint32_t*)(monsterStatus + 0x08) != 0xFFFFFFFF)
-                            {
-                                i = 0;
-                                myX = *(short int*)myPosition;
-                                myY = *(short int*)(myPosition + 0x2);
-                                entityX = *(short int*)(monsterStatus + 0x0C);
-                                entityY = *(short int*)(monsterStatus + 0x0E);
-                                if (moveAttackPartner_CheckBox->Checked)
-                                    AttackMonsterPetPartner(monsterStatus, 1);
-                                if (moveAttackPet_CheckBox->Checked)
-                                    AttackMonsterPetPartner(monsterStatus, 0);
-                                for (int spell = 0; spell < (int)targetSpell_Listbox->Items->Count; ++spell)
-                                {
-                                    for (int spell2 = 0; spell2 < (int)targetSpell_ComboBox->Items->Count; ++spell2)
-                                    {
-                                        if ((targetSpell_Listbox->Items[spell]->ToString() == targetSpell_ComboBox->Items[spell2]->ToString()) && ((int)*(DWORD*)(skillCD + spell2 * 0x48)) == 0)
-                                        {
-                                            AttackMonster(monsterStatus, (spell2 + 1));
-                                            break;
-                                        }
-                                    }
-                                }
-                                AttackMonster(monsterStatus, 0);
-                                Sleep(300);
-                            }
-                        }
-                    }
-                }
+                myPosition = ReadPointer(0x004F4904, { 0x20, 0x0C });
                 if (attackWhite_CheckBox->Checked)
                 {
                     for (int monsterAttack = 0; monsterAttack < (int)targetWhite_Listbox->Items->Count; ++monsterAttack)
@@ -403,29 +371,26 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
                         {
                             myX = *(short int*)myPosition;
                             myY = *(short int*)(myPosition + 0x2);
+
                             entityX = *(short int*)(monsterStatus + 0x0C);
                             entityY = *(short int*)(monsterStatus + 0x0E);
-                            while (abs(myX - entityX) < attackRange && abs(myY - entityY) < attackRange && !targetBot_Worker->CancellationPending && *(uint32_t*)(monsterStatus + 0x08) != 0xFFFFFFFF)
+                            while (abs(myX - entityX) < attackRange && abs(myY - entityY) < attackRange && *(uint32_t*)(monsterStatus + 0x08) != 0xFFFFFFFF)
                             {
                                 i = 0;
                                 myX = *(short int*)myPosition;
                                 myY = *(short int*)(myPosition + 0x2);
+
                                 entityX = *(short int*)(monsterStatus + 0x0C);
                                 entityY = *(short int*)(monsterStatus + 0x0E);
+
                                 if (moveAttackPartner_CheckBox->Checked)
                                     AttackMonsterPetPartner(monsterStatus, 1);
                                 if (moveAttackPet_CheckBox->Checked)
                                     AttackMonsterPetPartner(monsterStatus, 0);
                                 for (int spell = 0; spell < (int)targetSpell_Listbox->Items->Count; ++spell)
                                 {
-                                    for (int spell2 = 0; spell2 < (int)targetSpell_ComboBox->Items->Count; ++spell2)
-                                    {
-                                        if ((targetSpell_Listbox->Items[spell]->ToString() == targetSpell_ComboBox->Items[spell2]->ToString()) && ((int)*(DWORD*)(skillCD + spell2 * 0x48)) == 0)
-                                        {
-                                            AttackMonster(monsterStatus, (spell2 + 1));
-                                            break;
-                                        }
-                                    }
+                                    AttackMonster(monsterStatus, Convert::ToInt16(targetSpell_Listbox->Items[spell]->ToString()));  
+                                    Sleep(150);
                                 }
                                 AttackMonster(monsterStatus, 0);
                                 Sleep(300);
@@ -433,17 +398,20 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
                         }
                     }
                 }
-                if (attackEverything_CheckBox->Checked)
+                else if (attackEverything_CheckBox->Checked)
                 {
                     myX = *(short int*)myPosition;
                     myY = *(short int*)(myPosition + 0x2);
+
                     entityX = *(short int*)(monsterStatus + 0x0C);
                     entityY = *(short int*)(monsterStatus + 0x0E);
+
                     while (abs(myX - entityX) < attackRange && abs(myY - entityY) < attackRange && !targetBot_Worker->CancellationPending && *(uint32_t*)(monsterStatus + 0x08) != 0xFFFFFFFF)
                     {
                         i = 0;
                         myX = *(short int*)myPosition;
                         myY = *(short int*)(myPosition + 0x2);
+
                         entityX = *(short int*)(monsterStatus + 0x0C);
                         entityY = *(short int*)(monsterStatus + 0x0E);
                         if (moveAttackPartner_CheckBox->Checked)
@@ -452,21 +420,15 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
                             AttackMonsterPetPartner(monsterStatus, 0);
                         for (int spell = 0; spell < (int)targetSpell_Listbox->Items->Count; ++spell)
                         {
-                            for (int spell2 = 0; spell2 < (int)targetSpell_ComboBox->Items->Count; ++spell2)
-                            {
-                                if ((targetSpell_Listbox->Items[spell]->ToString() == targetSpell_ComboBox->Items[spell2]->ToString()) && ((int)*(DWORD*)(skillCD + spell2 * 0x48)) == 0)
-                                {
-                                    AttackMonster(monsterStatus, (spell2 + 1));
-                                    break;
-                                }
-                            }
+                            AttackMonster(monsterStatus, Convert::ToInt16(targetSpell_Listbox->Items[spell]->ToString()));
+                            Sleep(150);
                         }
                         AttackMonster(monsterStatus, 0);
                         Sleep(300);
                     }
                 }
-            }        
-        state = 1;
+            }
+            state = 2;
         }
         Sleep(10);
     }

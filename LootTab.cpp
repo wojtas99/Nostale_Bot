@@ -137,13 +137,11 @@ void easyBot::main_form::refreshItems(System::Object^ sender, System::EventArgs^
 {
     bool found = 0;
     lootBlack_Listbox->Items->Clear();
-    DWORD itemList;
-    DWORD itemListPointer;
-    int iterations = (int)*(DWORD*)itemCount;
-    if (iterations)
-        itemListPointer = ReadPointer(0x003566D8, { 0xEB0, 0X4, 0X5C4, 0X0 });
-    for (int i = 0; i < (int)*(DWORD*)itemCount; ++i)
+    DWORD itemList, itemListPointer;
+    int iterations = (int)*(DWORD*)ReadPointer(0x003582C0, { 0x8, 0X4, 0X7C, 0X4, 0X568 });
+    for (int i = 0; i < iterations; ++i)
     {
+        itemListPointer = ReadPointer(0x003566D8, { 0xEB0, 0X4, 0X5C4, 0X0 });
         itemList = *(DWORD*)(*(DWORD*)(*(DWORD*)(itemListPointer + 0x04 * i) + 0xC4) + 0x38);
         for (int tmp = 0; tmp < (int)lootBlack_Listbox->Items->Count; ++tmp)
         {
@@ -202,6 +200,7 @@ void easyBot::main_form::saveLoot(System::Object^ sender, System::EventArgs^ e)
         save.close();
     }
 }
+
 
 void easyBot::main_form::loadLoot(System::Object^ sender, System::EventArgs^ e)
 {
@@ -329,26 +328,28 @@ void easyBot::main_form::checkBoxLoot_CheckedChanged(System::Object^ sender, Sys
 
 void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e)
 {
-    
-    DWORD itemList;
     short int myX;
     short int myY;
     short int entityX;
     short int entityY;
 
-    int lootRange = (int)*(BYTE*)range;
+    int lootRange = (int)*(BYTE*)ReadPointer(0x004F4904, { 0x68 });
 
     double timer = 0;
 
     String^ itemName;
-    DWORD itemListPointer;
+    DWORD itemListPointer, myPosition, itemList;
+
+    myPosition = ReadPointer(0x004F4904, { 0x20, 0x0C });
+
+    int itemCount = 0;
     while (!lootBot_Worker->CancellationPending)
     {
-        if (state == 1)
+        if (state == 2)
         {
             if (lootEverything_CheckBox->Checked)
             {
-                for (int item = 0; item < (int)*(DWORD*)itemCount; ++item)
+                for (int item = 0; item < *(int*)ReadPointer(0x003582C0, { 0x8, 0X4, 0X7C, 0X4, 0X568 }); ++item)
                 {
                     itemListPointer = ReadPointer(0x003566D8, { 0xEB0, 0X4, 0X5C4, 0X0 });
                     itemList = *(DWORD*)(itemListPointer + item * 0x04);
@@ -356,7 +357,7 @@ void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentMo
                     myY = *(short int*)(myPosition + 0x2);
                     entityX = *(short int*)(itemList + 0x0C);
                     entityY = *(short int*)(itemList + 0x0E);
-                    itemList = (uint32_t)itemList;
+
                     if (abs(myX - entityX) < lootRange && abs(myY - entityY) < lootRange)
                     {
                         MoveTo(entityY * 65536 + entityX);
@@ -380,59 +381,22 @@ void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentMo
                     }
                 }
             }
-            else if (lootBlack_CheckBox->Checked)
-            {
-                for (int item = 0; item < (int)*(DWORD*)itemCount; ++item)
-                {
-                    itemListPointer = ReadPointer(0x003566D8, { 0xEB0, 0X4, 0X5C4, 0X0 });
-                    itemList = *(DWORD*)(itemListPointer + item * 0x04);
-                    myX = *(short int*)myPosition;
-                    myY = *(short int*)(myPosition + 0x2);
-                    entityX = *(short int*)(itemList + 0x0C);
-                    entityY = *(short int*)(itemList + 0x0E);
-                    itemList = (uint32_t)itemList;
-                    itemName = gcnew System::String((const char*)*(DWORD*)(*(DWORD*)(itemList + 0xC4) + 0x38));
-                    if (abs(myX - entityX) < lootRange && abs(myY - entityY) < lootRange)
-                    {
-                        for (int i = 0; i < (int)lootBlack_Listbox->Items->Count; ++i)
-                        {
-                            if (itemName == lootBlack_Listbox->Items[i]->ToString())
-                            {
-                                MoveTo(entityY * 65536 + entityX);
-                                while (abs(myX - entityX) > 1 && abs(myY - entityY) > 1)
-                                {
-                                    myX = *(short int*)myPosition;
-                                    myY = *(short int*)(myPosition + 0x2);
-                                    Sleep(50);
-                                    timer += 0.05;
-                                    if (timer > 2)
-                                    {
-                                        MoveTo(entityY * 65536 + entityX);
-                                        timer = 0;
-                                    }
-                                }
-                                Sleep(200);
-                                Collect(itemList);
-                                Sleep(100);
-                                timer = 0;
-                                item = 0;
-                            }
-                        }
-                    }
-                }
-            }
             else if (lootWhite_CheckBox->Checked)
             {
-                for (int item = 0; item < (int)*(DWORD*)itemCount; ++item)
+                for (int item = 0; item < *(int*)ReadPointer(0x003582C0, { 0x8, 0X4, 0X7C, 0X4, 0X568 }); ++item)
                 {
                     itemListPointer = ReadPointer(0x003566D8, { 0xEB0, 0X4, 0X5C4, 0X0 });
+
                     itemList = *(DWORD*)(itemListPointer + item * 0x04);
+
                     myX = *(short int*)myPosition;
                     myY = *(short int*)(myPosition + 0x2);
+
                     entityX = *(short int*)(itemList + 0x0C);
                     entityY = *(short int*)(itemList + 0x0E);
-                    itemList = (uint32_t)itemList;
+
                     itemName = gcnew System::String((const char*)*(DWORD*)(*(DWORD*)(itemList + 0xC4) + 0x38));
+
                     if (abs(myX - entityX) < lootRange && abs(myY - entityY) < lootRange)
                     {
                         for (int i = 0; i < (int)lootWhite_Listbox->Items->Count; ++i)
@@ -462,7 +426,7 @@ void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentMo
                     }
                 }
             }
-            state = 2;
+            state = 0;
         }
         Sleep(10);
     }
