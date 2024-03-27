@@ -332,10 +332,14 @@ void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentMo
     short int myY;
     short int entityX;
     short int entityY;
-
+    short int tmp;
     int lootRange = (int)*(BYTE*)ReadPointer(0x004F4904, { 0x68 });
-
+    if (lootRange < 5)
+    {
+        lootRange = 8;
+    }
     double timer = 0;
+    double timer2 = 0;
 
     String^ itemName;
     DWORD itemListPointer, myPosition, itemList;
@@ -361,15 +365,23 @@ void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentMo
                     if (abs(myX - entityX) < lootRange && abs(myY - entityY) < lootRange)
                     {
                         MoveTo(entityY * 65536 + entityX);
+                        Sleep(300);
                         while (abs(myX - entityX) > 1 && abs(myY - entityY) > 1)
                         {
                             myX = *(short int*)myPosition;
                             myY = *(short int*)(myPosition + 0x2);
                             Sleep(50);
                             timer += 0.05;
+                            if (timer2 > 3)
+                            {
+                                timer2 = 0;
+                                break;
+                            }
                             if (timer > 1)
                             {
-                                MoveTo(entityY * 65536 + entityX);
+                                timer2 += 1;
+                                tmp = ((entityY + rand() % 3 - 1) * 65536) + (entityX + rand() % 3 - 1);
+                                MoveTo(tmp);
                                 timer = 0;
                             }
                         }
@@ -404,17 +416,26 @@ void easyBot::main_form::startLootBot_thread(Object^ sender, System::ComponentMo
                             if (itemName == lootWhite_Listbox->Items[i]->ToString())
                             {
                                 MoveTo(entityY * 65536 + entityX);
+                                Sleep(300);
                                 while (abs(myX - entityX) > 1 && abs(myY - entityY) > 1)
                                 {
                                     myX = *(short int*)myPosition;
                                     myY = *(short int*)(myPosition + 0x2);
                                     Sleep(50);
                                     timer += 0.05;
-                                    if (timer > 2)
+                                    if (timer2 > 3)
                                     {
-                                        MoveTo(entityY * 65536 + entityX);
+                                        timer2 = 0;
+                                        break;
+                                    }
+                                    if (timer > 1)
+                                    {
+                                        timer2 += 1;
+                                        tmp = ((entityY + rand() % 3 - 1) * 65536) + (entityX + rand() % 3 - 1);
+                                        MoveTo(tmp);
                                         timer = 0;
                                     }
+      
                                 }
                                 Sleep(200);
                                 Collect(itemList);

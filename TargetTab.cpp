@@ -339,7 +339,13 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
     DWORD monsterStatus;
     DWORD monsterList;
 
-    int attackRange = ((int)*(BYTE*)ReadPointer(0x004F4904, { 0x68 })) - 2;
+    int attackRangeWarrior = 0;
+    int attackRange = ((int)*(BYTE*)ReadPointer(0x004F4904, { 0x68 })) - 3;
+    if (attackRange < 5)
+    {
+        attackRange = 7;
+        attackRangeWarrior = ((int)*(BYTE*)ReadPointer(0x004F4904, { 0x68 })) + 1;
+    }
 
     short int myX;
     short int myY;
@@ -351,12 +357,16 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
 
     int monsterCount = 0;
 
+    short skill = 0;
+
     DWORD myPosition;
+
+    DWORD skillCD, skillCD5 = 0;
 
     while (!targetBot_Worker->CancellationPending)
     {
         if (state == 1)
-        {;
+        {
             for (int i = 0; i < *(int*)ReadPointer(0x003582C0, { 0x8, 0x4, 0X60, 0X4, 0X608 }) - 1; ++i)
             {
                 monsterList = ReadPointer(0x003566D8, { 0xEA4, 0x4, 0X5E4, 0X0 });
@@ -386,14 +396,56 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
                                 if (moveAttackPartner_CheckBox->Checked)
                                     AttackMonsterPetPartner(monsterStatus, 1);
                                 if (moveAttackPet_CheckBox->Checked)
-                                    AttackMonsterPetPartner(monsterStatus, 0);
-                                for (int spell = 0; spell < (int)targetSpell_Listbox->Items->Count; ++spell)
+                                    AttackMonsterPetPartner(monsterStatus, 0); 
+                                if (attackRangeWarrior > 0)
                                 {
-                                    AttackMonster(monsterStatus, Convert::ToInt16(targetSpell_Listbox->Items[spell]->ToString()));  
-                                    Sleep(150);
+                                    if (abs(myX - entityX) < attackRangeWarrior && abs(myY - entityY) < attackRangeWarrior)
+                                    {
+                                        skillCD = ReadPointer(0x004F4DD0, { 0X158, 0x4, 0x4, 0x0, 0x24 });
+                                        skillCD5 = ReadPointer(0x004F4CDC, { 0X20, 0x4, 0x88, 0xE28, 0x24 });
+                                        for (int spell = 0; spell < (int)targetSpell_Listbox->Items->Count; ++spell)
+                                        {
+                                            skill = Convert::ToInt16(targetSpell_Listbox->Items[spell]->ToString());
+                                            if (skill < 5)
+                                            {
+                                                if (*(DWORD*)(skillCD + (skill-1*0x48)) == 0)
+                                                    AttackMonster(monsterStatus, skill);
+                                                    Sleep(150);
+                                            }
+                                            else
+                                            {
+                                                if (*(DWORD*)(skillCD5 + (skill - 1 * 0x48)) == 0)
+                                                    AttackMonster(monsterStatus, skill);
+                                                Sleep(150);
+                                            }
+                                        }
+                                    }
+                                    AttackRun(monsterStatus);
+                                    Sleep(300);
                                 }
-                                AttackMonster(monsterStatus, 0);
-                                Sleep(300);
+                                else
+                                {
+                                    skillCD = ReadPointer(0x004F4DD0, { 0X158, 0x4, 0x4, 0x0, 0x24 });
+                                    skillCD5 = ReadPointer(0x004F4CDC, { 0X20, 0x4, 0x88, 0xE28, 0x24 });
+                                    for (int spell = 0; spell < (int)targetSpell_Listbox->Items->Count; ++spell)
+                                    {
+                                        skill = Convert::ToInt16(targetSpell_Listbox->Items[spell]->ToString());
+                                        if (skill < 5)
+                                        {
+                                            if (*(DWORD*)(skillCD + (skill - 1 * 0x48)) == 0)
+                                                AttackMonster(monsterStatus, skill);
+                                                Sleep(300);
+                                        }
+                                        else
+                                        {
+                                            if (*(DWORD*)(skillCD5 + (skill - 1 * 0x48)) == 0)
+                                                AttackMonster(monsterStatus, skill);
+                                                Sleep(300);
+                                        }
+                                    }
+                                    AttackMonster(monsterStatus, 0);
+                                    Sleep(300);
+                                }
                             }
                         }
                     }
@@ -418,13 +470,55 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
                             AttackMonsterPetPartner(monsterStatus, 1);
                         if (moveAttackPet_CheckBox->Checked)
                             AttackMonsterPetPartner(monsterStatus, 0);
-                        for (int spell = 0; spell < (int)targetSpell_Listbox->Items->Count; ++spell)
+                        if (attackRangeWarrior > 0)
                         {
-                            AttackMonster(monsterStatus, Convert::ToInt16(targetSpell_Listbox->Items[spell]->ToString()));
-                            Sleep(150);
+                            if (abs(myX - entityX) < attackRangeWarrior && abs(myY - entityY) < attackRangeWarrior)
+                            {
+                                skillCD = ReadPointer(0x004F4DD0, { 0X158, 0x4, 0x4, 0x0, 0x24 });
+                                skillCD5 = ReadPointer(0x004F4CDC, { 0X20, 0x4, 0x88, 0xE28, 0x24 });
+                                for (int spell = 0; spell < (int)targetSpell_Listbox->Items->Count; ++spell)
+                                {
+                                    skill = Convert::ToInt16(targetSpell_Listbox->Items[spell]->ToString());
+                                    if (skill < 5)
+                                    {
+                                        if (*(DWORD*)(skillCD + ((skill - 1) * 0x48)) == 0)
+                                            AttackMonster(monsterStatus, skill);
+                                            Sleep(300);
+                                    }
+                                    else
+                                    {
+                                        if (*(DWORD*)(skillCD5 + ((skill - 1) * 0x48)) == 0)
+                                            AttackMonster(monsterStatus, skill);
+                                            Sleep(300);
+                                    }
+                                }
+                            }
+                            AttackRun(monsterStatus);
+                            Sleep(300);
                         }
-                        AttackMonster(monsterStatus, 0);
-                        Sleep(300);
+                        else
+                        {
+                            skillCD = ReadPointer(0x004F4DD0, { 0X158, 0x4, 0x4, 0x0, 0x24 });
+                            skillCD5 = ReadPointer(0x004F4CDC, { 0X20, 0x4, 0x88, 0xE28, 0x24 });
+                            for (int spell = 0; spell < (int)targetSpell_Listbox->Items->Count; ++spell)
+                            {
+                                skill = Convert::ToInt16(targetSpell_Listbox->Items[spell]->ToString());
+                                if (skill < 5)
+                                {
+                                    if (*(DWORD*)(skillCD + ((skill - 1) * 0x48)) == 0)
+                                        AttackMonster(monsterStatus, skill);
+                                    Sleep(150);
+                                }
+                                else
+                                {
+                                    if (*(DWORD*)(skillCD5 + ((skill - 1) * 0x48)) == 0)
+                                        AttackMonster(monsterStatus, skill);
+                                    Sleep(150);
+                                }
+                            }
+                            AttackMonster(monsterStatus, 0);
+                            Sleep(300);
+                        }
                     }
                 }
             }

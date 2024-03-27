@@ -26,6 +26,7 @@
     <ClCompile Include="LootTab.cpp" />
     <ClCompile Include="MainTab.cpp" />
     <ClCompile Include="memscan.c" />
+    <ClCompile Include="ServerTab.cpp" />
     <ClCompile Include="TargetTab.cpp" />
     <ClCompile Include="WalkerTab.cpp" />
   </ItemGroup>
@@ -143,6 +144,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>true</EnableUAC>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <AdditionalDependencies>Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

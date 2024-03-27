@@ -30,6 +30,8 @@ void easyBot::main_form::InitializeWalkerTab(void)
     walkerActions_ComboBox->Size = System::Drawing::Size(87, 21);
     walkerActions_ComboBox->DropDownStyle = ComboBoxStyle::DropDownList;
     walkerActions_ComboBox->Items->Add("Walk");
+    walkerActions_ComboBox->Items->Add("Lure");
+    walkerActions_ComboBox->Items->Add("Sleep");
     walkerActions_ComboBox->SelectedIndex = 0;
 
     //######################     ListBoxes     ######################
@@ -178,8 +180,15 @@ void easyBot::main_form::addWaypoint(System::Object^ sender, System::EventArgs^ 
     DWORD myPosition = ReadPointer(0x004F4904, { 0x20, 0x0C });
     short int myX = (short int)*(short int*)myPosition;
     short int myY = (short int)*(short int*)(myPosition + 0x02);
-    if (*(uint32_t*)myPosition != 0)
-        walker_Listbox->Items->Add("X = " + myX + " Y = " + myY);
+    if (walkerActions_ComboBox->Items[walkerActions_ComboBox->SelectedIndex]->ToString() != "Sleep")
+    {
+        if (*(uint32_t*)myPosition != 0)
+            walker_Listbox->Items->Add(walkerActions_ComboBox->Items[walkerActions_ComboBox->SelectedIndex]->ToString() + "| X = " + myX + " Y = " + myY);
+    }
+    else
+    {
+        walker_Listbox->Items->Add(walkerActions_ComboBox->Items[walkerActions_ComboBox->SelectedIndex]->ToString() + "|" + walkerAction_TextBox->Text->ToString());
+    }
 }
 //###################### StartWalker ######################
 void easyBot::main_form::startWalkerBot_thread(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e)
@@ -193,7 +202,11 @@ void easyBot::main_form::startWalkerBot_thread(Object^ sender, System::Component
     short int mapX;
 
     DWORD myPosition;
+    String^ walkerOption;
+
     myPosition = ReadPointer(0x004F4904, { 0x20, 0x0C });
+
+
     while (!walkerBot_Worker->CancellationPending)
     {
         if (state == 0)
@@ -201,35 +214,56 @@ void easyBot::main_form::startWalkerBot_thread(Object^ sender, System::Component
             if ((int)walker_Listbox->Items->Count > 0)
             {
                 walker_Listbox->SetSelected(waypoint, TRUE);
-
-                mapX = System::Convert::ToInt32(walker_Listbox->Items[waypoint]->ToString()->Split('Y')[0]->Substring(3));
-                mapY = System::Convert::ToInt32(walker_Listbox->Items[waypoint]->ToString()->Split('Y')[1]->Substring(2));
-                myX = *(short int*)myPosition;
-                myY = *(short int*)(myPosition + 0x02);
-                while (myX != mapX && myY != mapY)
+                walkerOption = System::Convert::ToString(walker_Listbox->Items[waypoint]->ToString()->Split('|')[0]);
+                if (walkerOption != "Sleep")
                 {
+                    mapX = System::Convert::ToInt32(walker_Listbox->Items[waypoint]->ToString()->Split('=')[1]->Substring(1)->Split('Y')[0]);
+                    mapY = System::Convert::ToInt32(walker_Listbox->Items[waypoint]->ToString()->Split('Y')[1]->Substring(2));
                     myX = *(short int*)myPosition;
                     myY = *(short int*)(myPosition + 0x02);
-                    if (timer > 0.3)
+                    while (myX != mapX || myY != mapY)
                     {
-                        if (moveAttackPartner_CheckBox->Checked)
-                            MovePetPartner(mapY * 65536 + mapX, 1);
-                        if (moveAttackPet_CheckBox->Checked)
-                            MovePetPartner(mapY * 65536 + mapX, 0);
-                        MoveTo(mapY * 65536 + mapX);
-                        timer = 0;
+                        myX = *(short int*)myPosition;
+                        myY = *(short int*)(myPosition + 0x02);
+                        if (timer > 0.3)
+                        {
+                            if (moveAttackPartner_CheckBox->Checked)
+                                MovePetPartner(mapY * 65536 + mapX, 1);
+                            if (moveAttackPet_CheckBox->Checked)
+                                MovePetPartner(mapY * 65536 + mapX, 0);
+                            MoveTo(mapY * 65536 + mapX);
+                            timer = 0;
+                        }
+                        timer += 0.01;
+                        Sleep(10);
                     }
-                    timer += 0.01;
-                    Sleep(10);
-                }
-                if (waypoint < (unsigned int)walker_Listbox->Items->Count - 1)
-                {
-                    ++waypoint;
+                    if (waypoint < (unsigned int)walker_Listbox->Items->Count - 1)
+                    {
+                        ++waypoint;
+                    }
+                    else
+                    {
+                        waypoint = 0;
+                    }
                 }
                 else
                 {
-                    waypoint = 0;
+                    mapX = System::Convert::ToInt32(walker_Listbox->Items[waypoint]->ToString()->Split('|')[1]);
+                    Sleep(mapX);
+                    if (waypoint < (unsigned int)walker_Listbox->Items->Count - 1)
+                    {
+                        ++waypoint;
+                    }
+                    else
+                    {
+                        waypoint = 0;
+                    }
                 }
+                if(walkerOption != "Lure")
+                    state = 1;
+            }
+            else
+            {
                 state = 1;
             }
         }

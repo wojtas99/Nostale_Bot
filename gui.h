@@ -20,13 +20,16 @@ namespace easyBot
         main_form(void)
         {
         }
-        main_form(void(lpMoveTo)(uint32_t), void(lpAttackMonster)(uint32_t, short), void(lpRest)(void), void(lpCollect)(uint32_t), void(lpMovePetPartner)(uint32_t, bool), void(lpAttackMonsterPet)(uint32_t, bool))
+        main_form(void(lpMoveTo)(uint32_t), void(lpAttackMonster)(uint32_t, short), void(lpRest)(void), void(lpCollect)(uint32_t), void(lpMovePetPartner)(uint32_t, bool), void(lpAttackMonsterPet)(uint32_t, bool), 
+            void(lpAttackRun)(uint32_t))
+
         {
             InitializeMainTab();
             InitializeTargetTab();
             InitializeHealingTab();
             InitializeWalkerTab();
             InitializeLootTab();
+            InitializeServerTab();
             ListFilesInFolder(L"Waypoints");
             ListFilesInFolder(L"Target");
             ListFilesInFolder(L"Loot");
@@ -39,6 +42,7 @@ namespace easyBot
             this->collect = lpCollect;
             this->moveToPet = lpMovePetPartner;
             this->attackMonsterPet = lpAttackMonsterPet;
+            this->attackRun = lpAttackRun;
             this->FormBorderStyle = System::Windows::Forms::FormBorderStyle::FixedDialog;
             this->MaximizeBox = false;
         }
@@ -60,11 +64,13 @@ namespace easyBot
         void(*collect)(uint32_t);
         void(*moveToPet)(uint32_t, bool);
         void(*attackMonsterPet)(uint32_t, bool);
+        void(*attackRun)(uint32_t);
         void InitializeMainTab(void);
         void InitializeTargetTab(void);
         void InitializeHealingTab(void);
         void InitializeWalkerTab(void);
         void InitializeLootTab(void);
+        void InitializeServerTab(void);
         void ListFilesInFolder(const std::wstring& folderPath);
         void startBot(Object^ sender, EventArgs^ e);
         void saveWalker(System::Object^ sender, System::EventArgs^ e);
@@ -76,6 +82,7 @@ namespace easyBot
         void startLootBot_thread(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e);
         void startWalkerBot_thread(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e);
         void startHealingBot_thread(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e);
+        void startServerBot_thread(Object^ sender, System::ComponentModel::DoWorkEventArgs^ e);
         void addHealingItem(System::Object^ sender, System::EventArgs^ e);
         void addMonsterToBlackList(System::Object^ sender, System::EventArgs^ e);
         void addMonsterToWhiteList(System::Object^ sender, System::EventArgs^ e);
@@ -100,6 +107,7 @@ namespace easyBot
         System::ComponentModel::BackgroundWorker^ lootBot_Worker;
         System::ComponentModel::BackgroundWorker^ walkerBot_Worker;
         System::ComponentModel::BackgroundWorker^ healingBot_Worker;
+        System::ComponentModel::BackgroundWorker^ serverBot_Worker;
         System::Windows::Forms::Button^ startBot_Button;
         System::Windows::Forms::CheckBox^ moveAttackPet_CheckBox;
         System::Windows::Forms::CheckBox^ moveAttackPartner_CheckBox;
@@ -116,7 +124,6 @@ namespace easyBot
         System::Windows::Forms::ComboBox^ targetSpell_ComboBox;
         System::Windows::Forms::Button^ refreshTarget_Button;
         System::Windows::Forms::Button^ addSpell_Button;
-        //System::Windows::Forms::Button^ refreshSpell_Button;
         System::Windows::Forms::Button^ loadTarget_Button;
         System::Windows::Forms::Button^ saveTarget_Button;
         System::Windows::Forms::TextBox^ saveTarget_TextBox;
@@ -194,7 +201,10 @@ namespace easyBot
         System::Windows::Forms::CheckBox^ lootWhite_CheckBox;
         System::Windows::Forms::CheckBox^ lootBlack_CheckBox;
         System::Windows::Forms::CheckBox^ lootEverything_CheckBox;
-
+        // Server Tab
+        System::Windows::Forms::TabPage^ serverTab;
+        System::Windows::Forms::CheckBox^ server_CheckBox;
+        System::Windows::Forms::CheckBox^ client_CheckBox;
         // Pointers
         /*
         DWORD myPosition = ReadPointer(0x004F4904, { 0x20, 0x0C});

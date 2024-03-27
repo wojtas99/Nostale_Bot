@@ -13,6 +13,8 @@ void easyBot::main_form::InitializeMainTab(void)
     healingTab->Text = "Healing";
     lootTab = gcnew System::Windows::Forms::TabPage();
     lootTab->Text = "Loot";
+    serverTab = gcnew System::Windows::Forms::TabPage();
+    serverTab->Text = "Server";
     tabView = gcnew System::Windows::Forms::TabControl();
     tabView->Dock = System::Windows::Forms::DockStyle::Fill;
     tabView->TabPages->Add(mainTab);
@@ -20,6 +22,7 @@ void easyBot::main_form::InitializeMainTab(void)
     tabView->TabPages->Add(targetTab);
     tabView->TabPages->Add(healingTab);
     tabView->TabPages->Add(lootTab);
+    tabView->TabPages->Add(serverTab);
     Controls->Add(tabView);
     //################ Background Workers ####################
     walkerBot_Worker = gcnew System::ComponentModel::BackgroundWorker();
@@ -34,6 +37,9 @@ void easyBot::main_form::InitializeMainTab(void)
     lootBot_Worker = gcnew System::ComponentModel::BackgroundWorker();
     lootBot_Worker->WorkerSupportsCancellation = true;
     lootBot_Worker->DoWork += gcnew System::ComponentModel::DoWorkEventHandler(this, &main_form::startLootBot_thread);
+    serverBot_Worker = gcnew System::ComponentModel::BackgroundWorker();
+    serverBot_Worker->WorkerSupportsCancellation = true;
+    serverBot_Worker->DoWork += gcnew System::ComponentModel::DoWorkEventHandler(this, &main_form::startServerBot_thread);
     //######################   Main Tab    ##########################
     startBot_Button = gcnew System::Windows::Forms::Button();
     startBot_Button->Location = Point(0, 250);
@@ -90,6 +96,7 @@ void easyBot::main_form::startBot(Object^ sender, EventArgs^ e)
         lootBot_Worker->RunWorkerAsync();
         walkerBot_Worker->RunWorkerAsync();
         healingBot_Worker->RunWorkerAsync();
+        serverBot_Worker->RunWorkerAsync();
     }
     else
     {
@@ -99,6 +106,7 @@ void easyBot::main_form::startBot(Object^ sender, EventArgs^ e)
         walkerBot_Worker->CancelAsync();
         lootBot_Worker->CancelAsync();
         healingBot_Worker->CancelAsync();
+        serverBot_Worker->CancelAsync();
     }
 }
 //###################### Close Main_Form ######################
@@ -108,4 +116,5 @@ void easyBot::main_form::main_form_FormClosing(System::Object^ sender, System::W
     healingBot_Worker->CancelAsync();
     walkerBot_Worker->CancelAsync();
     lootBot_Worker->CancelAsync();
+    serverBot_Worker->CancelAsync();
 }
