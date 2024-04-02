@@ -337,7 +337,6 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
     string monsterName;
 
     DWORD monsterStatus;
-    DWORD monsterList;
 
     int attackRangeWarrior = 0;
     int attackRange = ((int)*(BYTE*)ReadPointer(0x004F4904, { 0x68 })) - 3;
@@ -359,8 +358,8 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
 
     short skill = 0;
 
-    DWORD myPosition;
-
+    DWORD myPosition = ReadPointer(0x004F4904, { 0x20, 0x0C });
+    DWORD monsterList = ReadPointer(0x003566D8, { 0xEA4, 0x4, 0X5E4, 0X0 });
     DWORD skillCD, skillCD5 = 0;
 
     while (!targetBot_Worker->CancellationPending)
@@ -369,12 +368,14 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
         {
             for (int i = 0; i < *(int*)ReadPointer(0x003582C0, { 0x8, 0x4, 0X60, 0X4, 0X608 }) - 1; ++i)
             {
-                monsterList = ReadPointer(0x003566D8, { 0xEA4, 0x4, 0X5E4, 0X0 });
                 monsterStatus = *(DWORD*)(monsterList + 0x04 * i);
-                monsterName = (string)(const char*)*(DWORD*)(*(DWORD*)(monsterStatus + 0x1BC) + 0x04);
-                myPosition = ReadPointer(0x004F4904, { 0x20, 0x0C });
+                if (monsterStatus == NULL) 
+                {
+                    break;
+                }
                 if (attackWhite_CheckBox->Checked)
                 {
+                    monsterName = (string)(const char*)*(DWORD*)(*(DWORD*)(monsterStatus + 0x1BC) + 0x04);
                     for (int monsterAttack = 0; monsterAttack < (int)targetWhite_Listbox->Items->Count; ++monsterAttack)
                     {
                         if (monsterName == msclr::interop::marshal_as<std::string>(targetWhite_Listbox->Items[monsterAttack]->ToString()))
@@ -396,7 +397,7 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
                                 if (moveAttackPartner_CheckBox->Checked)
                                     AttackMonsterPetPartner(monsterStatus, 1);
                                 if (moveAttackPet_CheckBox->Checked)
-                                    AttackMonsterPetPartner(monsterStatus, 0); 
+                                    AttackMonsterPetPartner(monsterStatus, 1); 
                                 if (attackRangeWarrior > 0)
                                 {
                                     if (abs(myX - entityX) < attackRangeWarrior && abs(myY - entityY) < attackRangeWarrior)
@@ -416,7 +417,7 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
                                             {
                                                 if (*(DWORD*)(skillCD5 + (skill - 1 * 0x48)) == 0)
                                                     AttackMonster(monsterStatus, skill);
-                                                Sleep(150);
+                                                    Sleep(150);
                                             }
                                         }
                                     }
@@ -466,6 +467,7 @@ void easyBot::main_form::startTargetBot_thread(Object^ sender, System::Component
 
                         entityX = *(short int*)(monsterStatus + 0x0C);
                         entityY = *(short int*)(monsterStatus + 0x0E);
+
                         if (moveAttackPartner_CheckBox->Checked)
                             AttackMonsterPetPartner(monsterStatus, 1);
                         if (moveAttackPet_CheckBox->Checked)
